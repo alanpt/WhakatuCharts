@@ -2,112 +2,218 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Whakatu Listening Station</title>
 <style>
-body {
+* {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
   background: #0a0a0a;
-  color: #f0ece4;
-  font-family: Georgia, serif;
+  overflow: hidden;
+}
+
+#art-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 15%;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 16px 16px 8px;
+}
+
+#header {
   text-align: center;
-  min-height: 100%;
-}
-
-#wrap {
-  padding: 20px 16px 32px;
-}
-
-#logo {
-  max-height: 80px;
-  max-width: 80%;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
 }
 
 #station-name {
-  font-size: 20px;
+  font-family: Georgia, serif;
+  font-size: 18px;
   color: #c8a96e;
   letter-spacing: 2px;
-  margin: 0 0 4px;
 }
 
 #month-label {
-  font-size: 13px;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
   color: #6b6560;
   letter-spacing: 3px;
   text-transform: uppercase;
-  margin: 0 0 20px;
+  margin-top: 3px;
+}
+
+#artwork-wrap {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  width: 100%;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  min-height: 0;
 }
 
 #artwork {
-  width: 280px;
-  height: 280px;
-  max-width: 80vw;
-  max-height: 80vw;
-  object-fit: cover;
-  background: #222;
   display: block;
-  margin: 0 auto 16px;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  background: #111;
 }
 
 #track-title {
-  font-size: 16px;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
   color: #f0ece4;
-  margin: 0 0 24px;
-  padding: 0 16px;
-  min-height: 1.4em;
+  text-align: center;
+  padding: 8px 16px 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
-#controls {
+#controls-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 15%;
+  background: #111;
+  border-top: 1px solid #222;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  padding: 0 12px;
+}
+
+#logo-wrap {
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+#logo {
+  height: 44px;
+  width: auto;
+  display: block;
+}
+
+#buttons {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
   justify-content: center;
-  gap: 40px;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 
-.ctrl-btn {
-  background: none;
-  border: 2px solid #6b6560;
-  color: #f0ece4;
-  border-radius: 50%;
-  width: 64px;
-  height: 64px;
-  font-size: 28px;
-  cursor: pointer;
-  line-height: 1;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.ctrl-btn:active {
-  background: #222;
+#status-wrap {
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  width: 44px;
+  text-align: right;
 }
 
 #status {
-  margin-top: 20px;
-  font-size: 13px;
+  font-family: Arial, sans-serif;
+  font-size: 10px;
   color: #6b6560;
-  min-height: 1.4em;
+  line-height: 1.3;
+}
+
+.ctrl-btn {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: #f0ece4;
+  border-radius: 8px;
+  width: 56px;
+  height: 44px;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 44px;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 0;
+  display: inline-block;
+  margin: 0 8px;
+}
+
+.ctrl-btn:active {
+  background: #333;
+  border-color: #c8a96e;
 }
 </style>
 </head>
 <body>
-<div id="wrap">
-  <img id="logo" src="logo.png" alt="Whakatu" onerror="this.style.display='none'">
-  <p id="station-name">Whakatu Listening Station</p>
-  <p id="month-label" id="month-label"></p>
-  <img id="artwork" src="" alt="">
-  <p id="track-title"></p>
-  <div id="controls">
-    <button class="ctrl-btn" id="prev-btn">&#9664;</button>
-    <button class="ctrl-btn" id="next-btn">&#9654;</button>
+
+<div id="art-area">
+  <div id="header">
+    <div id="station-name">WAA! Listening Station</div>
+    <div id="month-label"></div>
   </div>
-  <p id="status">Loading...</p>
+  <div id="artwork-wrap">
+    <img id="artwork" src="" alt="">
+  </div>
+  <div id="track-title"></div>
+</div>
+
+<div id="controls-bar">
+  <div id="logo-wrap">
+    <img id="logo" src="largelogo.png" alt="Whakatu" onerror="this.style.display='none'">
+  </div>
+  <div id="buttons">
+    <button class="ctrl-btn" id="prev-btn">&#9664;&#9664;</button>
+    <button class="ctrl-btn" id="stop-btn">&#9646;&#9646;</button>
+    <button class="ctrl-btn" id="next-btn">&#9654;&#9654;</button>
+  </div>
+  <div id="status-wrap">
+    <span id="status">Loading</span>
+  </div>
 </div>
 
 <audio id="player"></audio>
@@ -120,6 +226,7 @@ document.getElementById('month-label').innerHTML =
 
 var tracks = [];
 var idx = 0;
+var stopped = false;
 var player = document.getElementById('player');
 var artwork = document.getElementById('artwork');
 var trackTitle = document.getElementById('track-title');
@@ -137,13 +244,13 @@ function loadTracks() {
           tracks = [];
         }
         if (tracks.length > 0) {
-          status.innerHTML = 'Tap a button to begin';
+          status.innerHTML = 'Ready';
           showTrack(0);
         } else {
-          status.innerHTML = 'No tracks found';
+          status.innerHTML = 'No tracks';
         }
       } else {
-        status.innerHTML = 'Could not load tracks (' + xhr.status + ')';
+        status.innerHTML = 'Error ' + xhr.status;
       }
     }
   };
@@ -164,27 +271,38 @@ function showTrack(i) {
 }
 
 function playTrack(i) {
+  stopped = false;
   showTrack(i);
-  var playPromise = player.play();
-  if (playPromise !== undefined) {
-    playPromise.then(function() {
+  var p = player.play();
+  if (p !== undefined) {
+    p.then(function() {
       status.innerHTML = '';
     }).catch(function() {
-      status.innerHTML = 'Tap play to start';
+      status.innerHTML = 'Tap play';
     });
   }
 }
 
 player.addEventListener('ended', function() {
-  playTrack(idx + 1);
+  if (!stopped) {
+    playTrack(idx + 1);
+  }
 });
 
 document.getElementById('prev-btn').addEventListener('click', function() {
   if (player.currentTime > 3) {
     player.currentTime = 0;
+    if (!stopped) player.play();
   } else {
     playTrack(idx - 1);
   }
+});
+
+document.getElementById('stop-btn').addEventListener('click', function() {
+  stopped = true;
+  player.pause();
+  player.currentTime = 0;
+  status.innerHTML = 'Stopped';
 });
 
 document.getElementById('next-btn').addEventListener('click', function() {
