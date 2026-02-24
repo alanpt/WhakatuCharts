@@ -113,7 +113,7 @@ html, body {
   bottom: 0;
   height: 15%;
   background: #111;
-  border-top: 1px solid #222;
+  border-top: 1px solid #2a2a2a;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -165,26 +165,26 @@ html, body {
 }
 
 .ctrl-btn {
-  background: #1a1a1a;
-  border: 1px solid #444;
+  background: #2a2a2a;
+  border: 2px solid #666;
   color: #f0ece4;
-  border-radius: 8px;
-  width: 56px;
-  height: 44px;
-  font-size: 20px;
-  cursor: pointer;
+  border-radius: 10px;
+  width: 68px;
+  height: 48px;
+  font-size: 22px;
   line-height: 44px;
   text-align: center;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-appearance: none;
-  appearance: none;
-  padding: 0;
-  display: inline-block;
   margin: 0 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
-.ctrl-btn:active {
-  background: #333;
+.ctrl-btn.active {
+  background: #3a3a3a;
   border-color: #c8a96e;
 }
 </style>
@@ -193,7 +193,7 @@ html, body {
 
 <div id="art-area">
   <div id="header">
-    <div id="station-name">WAA! Listening Station</div>
+    <div id="station-name">Whakatu Listening Station</div>
     <div id="month-label"></div>
   </div>
   <div id="artwork-wrap">
@@ -204,12 +204,12 @@ html, body {
 
 <div id="controls-bar">
   <div id="logo-wrap">
-    <img id="logo" src="largelogo.png" alt="Whakatu" onerror="this.style.display='none'">
+    <img id="logo" src="logo.png" alt="Whakatu" onerror="this.style.display='none'">
   </div>
   <div id="buttons">
-    <button class="ctrl-btn" id="prev-btn">&#9664;&#9664;</button>
-    <button class="ctrl-btn" id="stop-btn">&#9646;&#9646;</button>
-    <button class="ctrl-btn" id="next-btn">&#9654;&#9654;</button>
+    <div class="ctrl-btn" id="prev-btn">&#9664;&#9664;</div>
+    <div class="ctrl-btn" id="stop-btn">&#9646;&#9646;</div>
+    <div class="ctrl-btn" id="next-btn">&#9654;&#9654;</div>
   </div>
   <div id="status-wrap">
     <span id="status">Loading</span>
@@ -289,7 +289,14 @@ player.addEventListener('ended', function() {
   }
 });
 
+function flashBtn(id) {
+  var el = document.getElementById(id);
+  el.className = 'ctrl-btn active';
+  setTimeout(function() { el.className = 'ctrl-btn'; }, 200);
+}
+
 document.getElementById('prev-btn').addEventListener('click', function() {
+  flashBtn('prev-btn');
   if (player.currentTime > 3) {
     player.currentTime = 0;
     if (!stopped) player.play();
@@ -299,6 +306,7 @@ document.getElementById('prev-btn').addEventListener('click', function() {
 });
 
 document.getElementById('stop-btn').addEventListener('click', function() {
+  flashBtn('stop-btn');
   stopped = true;
   player.pause();
   player.currentTime = 0;
@@ -306,6 +314,7 @@ document.getElementById('stop-btn').addEventListener('click', function() {
 });
 
 document.getElementById('next-btn').addEventListener('click', function() {
+  flashBtn('next-btn');
   playTrack(idx + 1);
 });
 
