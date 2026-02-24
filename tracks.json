@@ -2,12 +2,12 @@
   {
     "audio": "tracks/Bad_Blonde_-_I_Believe_in_Ghosts.mp3",
     "image": "tracks/Bad_Blonde_-_I_Believe_in_Ghosts.jpg",
-    "title": "Bad Blonde   I Believe In Ghosts"
+    "title": "Bad Blonde I Believe In Ghosts"
   },
   {
-    "audio": "tracks/Capriccio Elettronici _1 - Alvaro Moreno.mp3",
-    "image": "tracks/Capriccio Elettronici _1 - Alvaro Moreno.jpg",
-    "title": "Capriccio Elettronici  1   Alvaro Moreno"
+    "audio": "tracks/Capriccio%20Elettronici%20_1%20-%20Alvaro%20Moreno.mp3",
+    "image": "tracks/Capriccio%20Elettronici%20_1%20-%20Alvaro%20Moreno.jpg",
+    "title": "Capriccio Elettronici 1 Alvaro Moreno"
   },
   {
     "audio": "tracks/Downtown_BEES.mp3",
@@ -15,18 +15,18 @@
     "title": "Downtown BEES"
   },
   {
-    "audio": "tracks/my enemies - Funk_n_SloCuts.mp3",
-    "image": "tracks/my enemies - Funk_n_SloCuts.jpg",
-    "title": "My Enemies   Funk N SloCuts"
+    "audio": "tracks/my%20enemies%20-%20Funk_n_SloCuts.mp3",
+    "image": "tracks/my%20enemies%20-%20Funk_n_SloCuts.jpg",
+    "title": "My Enemies Funk N SloCuts"
   },
   {
-    "audio": "tracks/Tō_Wairua_feat_Keeli_Ferris_and_Salome_Faasoo_Junus_Orca_Vocal_Mix_KLICKAUD.mp3",
-    "image": "tracks/Tō_Wairua_feat_Keeli_Ferris_and_Salome_Faasoo_Junus_Orca_Vocal_Mix_KLICKAUD.jpg",
+    "audio": "tracks/T%C5%8D_Wairua_feat_Keeli_Ferris_and_Salome_Faasoo_Junus_Orca_Vocal_Mix_KLICKAUD.mp3",
+    "image": "tracks/T%C5%8D_Wairua_feat_Keeli_Ferris_and_Salome_Faasoo_Junus_Orca_Vocal_Mix_KLICKAUD.jpg",
     "title": "Tō Wairua Feat Keeli Ferris And Salome Faasoo Junus Orca Vocal Mix KLICKAUD"
   },
   {
-    "audio": "tracks/your enemies - Funk_n_SloCuts.mp3",
-    "image": "tracks/your enemies - Funk_n_SloCuts.jpg",
-    "title": "Your Enemies   Funk N SloCuts"
+    "audio": "tracks/your%20enemies%20-%20Funk_n_SloCuts.mp3",
+    "image": "tracks/your%20enemies%20-%20Funk_n_SloCuts.jpg",
+    "title": "Your Enemies Funk N SloCuts"
   }
 ]
