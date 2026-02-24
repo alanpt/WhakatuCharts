@@ -51,19 +51,19 @@ html, body {
 }
 
 #station-name {
-  font-family: Georgia, serif;
-  font-size: 18px;
-  color: #c8a96e;
+  font-family: Courier New, serif;
+  font-size: 23px;
+  color: white;
   letter-spacing: 2px;
 }
 
 #month-label {
   font-family: Arial, sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   color: #6b6560;
   letter-spacing: 3px;
   text-transform: uppercase;
-  margin-top: 3px;
+  margin-top: 8px;
 }
 
 #artwork-wrap {
@@ -92,20 +92,7 @@ html, body {
   background: #111;
 }
 
-#track-title {
-  font-family: Arial, sans-serif;
-  font-size: 13px;
-  color: #f0ece4;
-  text-align: center;
-  padding: 8px 16px 0;
-  -ms-flex-negative: 0;
-  flex-shrink: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-}
-
+/* Controls bar */
 #controls-bar {
   position: absolute;
   left: 0;
@@ -117,10 +104,36 @@ html, body {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 6px 12px;
+}
+
+#track-title {
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+  color: #f0ece4;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  margin-bottom: 6px;
+  min-height: 1.2em;
+}
+
+#controls-row {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  padding: 0 12px;
 }
 
 #logo-wrap {
@@ -130,7 +143,7 @@ html, body {
 }
 
 #logo {
-  height: 44px;
+  height: 36px;
   width: auto;
   display: block;
 }
@@ -170,9 +183,9 @@ html, body {
   color: #f0ece4;
   border-radius: 10px;
   width: 68px;
-  height: 48px;
-  font-size: 22px;
-  line-height: 44px;
+  height: 40px;
+  font-size: 20px;
+  line-height: 36px;
   text-align: center;
   margin: 0 8px;
   cursor: pointer;
@@ -199,21 +212,22 @@ html, body {
   <div id="artwork-wrap">
     <img id="artwork" src="" alt="">
   </div>
-  <div id="track-title"></div>
 </div>
 
 <div id="controls-bar">
-  <div id="logo-wrap">
-    <img id="logo" src="logo.png" alt="Whakatu" onerror="this.style.display='none'">
-  </div>
   <div id="track-title"></div>
-  <div id="buttons">
-    <div class="ctrl-btn" id="prev-btn">&#9664;&#9664;</div>
-    <div class="ctrl-btn" id="stop-btn">&#9646;&#9646;</div>
-    <div class="ctrl-btn" id="next-btn">&#9654;&#9654;</div>
-  </div>
-  <div id="status-wrap">
-    <span id="status"> </span>
+  <div id="controls-row">
+    <div id="logo-wrap">
+      <img id="logo" src="logo.png" alt="Whakatu" onerror="this.style.display='none'">
+    </div>
+    <div id="buttons">
+      <div class="ctrl-btn" id="prev-btn">&#9664;&#9664;</div>
+      <div class="ctrl-btn" id="stop-btn">&#9646;&#9646;</div>
+      <div class="ctrl-btn" id="next-btn">&#9654;&#9654;</div>
+    </div>
+    <div id="status-wrap">
+      <span id="status"> </span>
+    </div>
   </div>
 </div>
 
@@ -245,7 +259,7 @@ function loadTracks() {
           tracks = [];
         }
         if (tracks.length > 0) {
-          status.innerHTML = 'Ready';
+          status.innerHTML = '';
           showTrack(0);
         } else {
           status.innerHTML = 'No tracks';
