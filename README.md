@@ -1,4 +1,6 @@
-# Whakatu Listening Station
+# Whakatu New Songs Listening Station
+
+After uploading an mp3 (or m4a) and an image titled with the same name in the 'tracks' folder. A GitHub action will build a website that emulate the old CD listening stations of yore. A forward and pause button exist. Works best with some kind of kiosk software.
 
 ## First-time setup
 
