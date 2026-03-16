@@ -1,25 +1,24 @@
 name: Build tracks manifest
-
 on:
   push:
     branches:
       - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write        # ← needed to push the commit back
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
+        with:
+          fetch-depth: 0      # full history, avoids push issues
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-
       - name: Build tracks.json
         run: node build-manifest.js
-
       - name: Commit tracks.json if changed
         run: |
           git config user.name "github-actions"
