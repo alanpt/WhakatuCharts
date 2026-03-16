@@ -1,4 +1,4 @@
-const CACHE = 'whakatu-v1';
+const CACHE = 'whakatu-v2'; // bump this whenever you push changes
 const STATIC = ['/', '/index.html', '/manifest.json', '/logo.png'];
 
 self.addEventListener('install', e => {
@@ -16,14 +16,22 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Network-first for tracks.json so new tracks appear after push
-  if (e.request.url.includes('tracks.json')) {
+  // Network-first for tracks.json AND index.html
+  if (e.request.url.includes('tracks.json') || 
+      e.request.url.endsWith('/') || 
+      e.request.url.includes('index.html')) {
     e.respondWith(
-      fetch(e.request).catch(() => caches.match(e.request))
+      fetch(e.request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
     );
     return;
   }
-  // Cache-first for everything else
+  // Cache-first for everything else (audio, images, logo)
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
       const clone = res.clone();
