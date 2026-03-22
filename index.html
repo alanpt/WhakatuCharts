@@ -81,6 +81,7 @@ html, body {
   -ms-flex-pack: center;
   justify-content: center;
   min-height: 0;
+  cursor: pointer;
 }
 
 #artwork {
@@ -90,9 +91,13 @@ html, body {
   width: auto;
   height: auto;
   background: #111;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Controls bar */
 #controls-bar {
   position: absolute;
   left: 0;
@@ -200,6 +205,11 @@ html, body {
   background: #3a3a3a;
   border-color: #c8a96e;
 }
+
+#playstop-btn.playing {
+  border-color: #c8a96e;
+  color: #c8a96e;
+}
 </style>
 </head>
 <body>
@@ -222,7 +232,7 @@ html, body {
     </div>
     <div id="buttons">
       <div class="ctrl-btn" id="prev-btn">&#9664;&#9664;</div>
-      <div class="ctrl-btn" id="stop-btn">STOP!</div>
+      <div class="ctrl-btn" id="playstop-btn">&#9654;</div>
       <div class="ctrl-btn" id="next-btn">&#9654;&#9654;</div>
     </div>
     <div id="status-wrap">
@@ -241,11 +251,41 @@ document.getElementById('month-label').innerHTML =
 
 var tracks = [];
 var idx = 0;
-var stopped = false;
+var isPlaying = false;
+var audioUnlocked = false;
+var pendingPlay = false;
+
 var player = document.getElementById('player');
 var artwork = document.getElementById('artwork');
 var trackTitle = document.getElementById('track-title');
 var status = document.getElementById('status');
+var playstopBtn = document.getElementById('playstop-btn');
+
+// Old iOS requires audio to be triggered synchronously in a touch event.
+// We unlock the audio context on the very first touch anywhere on the page.
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  player.load();
+  // If something was waiting to play, play it now
+  if (pendingPlay) {
+    pendingPlay = false;
+    player.play();
+  }
+}
+document.addEventListener('touchstart', unlockAudio, false);
+document.addEventListener('click', unlockAudio, false);
+
+function setPlayingState(playing) {
+  isPlaying = playing;
+  if (playing) {
+    playstopBtn.innerHTML = '&#9646;&#9646;';
+    playstopBtn.className = 'ctrl-btn playing';
+  } else {
+    playstopBtn.innerHTML = '&#9654;';
+    playstopBtn.className = 'ctrl-btn';
+  }
+}
 
 function loadTracks() {
   var xhr = new XMLHttpRequest();
@@ -253,11 +293,8 @@ function loadTracks() {
   xhr.onreadystatechange = function() {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
-        try {
-          tracks = JSON.parse(xhr.responseText);
-        } catch(e) {
-          tracks = [];
-        }
+        try { tracks = JSON.parse(xhr.responseText); }
+        catch(e) { tracks = []; }
         if (tracks.length > 0) {
           status.innerHTML = '';
           showTrack(0);
@@ -272,6 +309,7 @@ function loadTracks() {
   xhr.send();
 }
 
+// showTrack only updates UI and src — does not attempt to play
 function showTrack(i) {
   idx = ((i % tracks.length) + tracks.length) % tracks.length;
   var t = tracks[idx];
@@ -283,55 +321,154 @@ function showTrack(i) {
     artwork.style.display = 'none';
   }
   player.src = t.audio;
+  player.load();
+  setPlayingState(false);
 }
 
+// playTrack updates UI and plays — must be called from a touch/click handler
 function playTrack(i) {
-  stopped = false;
-  showTrack(i);
-  var p = player.play();
-  if (p !== undefined) {
-    p.then(function() {
-      status.innerHTML = '';
-    }).catch(function() {
-      status.innerHTML = 'Tap play';
-    });
+  idx = ((i % tracks.length) + tracks.length) % tracks.length;
+  var t = tracks[idx];
+  trackTitle.innerHTML = t.title;
+  if (t.image) {
+    artwork.src = t.image;
+    artwork.style.display = 'block';
+  } else {
+    artwork.style.display = 'none';
+  }
+  player.src = t.audio;
+  player.load();
+
+  if (audioUnlocked) {
+    player.play();
+    setPlayingState(true);
+  } else {
+    // Will play as soon as first touch unlocks audio
+    pendingPlay = true;
+    setPlayingState(false);
+    status.innerHTML = 'Tap to play';
+  }
+}
+
+function doPlay() {
+  if (audioUnlocked) {
+    player.play();
+    setPlayingState(true);
+    status.innerHTML = '';
+  } else {
+    pendingPlay = true;
+    status.innerHTML = 'Tap to play';
   }
 }
 
 player.addEventListener('ended', function() {
-  if (!stopped) {
-    playTrack(idx + 1);
+  playTrack(idx + 1);
+});
+
+player.addEventListener('pause', function() {
+  if (!pendingPlay) setPlayingState(false);
+});
+
+player.addEventListener('play', function() {
+  setPlayingState(true);
+  status.innerHTML = '';
+});
+
+// Play/stop toggle
+playstopBtn.addEventListener('click', function() {
+  if (isPlaying) {
+    player.pause();
+    player.currentTime = 0;
+    setPlayingState(false);
+  } else {
+    doPlay();
   }
 });
 
 function flashBtn(id) {
   var el = document.getElementById(id);
+  var prev = el.className;
   el.className = 'ctrl-btn active';
-  setTimeout(function() { el.className = 'ctrl-btn'; }, 200);
+  setTimeout(function() { el.className = prev; }, 200);
 }
 
 document.getElementById('prev-btn').addEventListener('click', function() {
   flashBtn('prev-btn');
   if (player.currentTime > 3) {
     player.currentTime = 0;
-    if (!stopped) player.play();
+    if (isPlaying) player.play();
   } else {
     playTrack(idx - 1);
   }
-});
-
-document.getElementById('stop-btn').addEventListener('click', function() {
-  flashBtn('stop-btn');
-  stopped = true;
-  player.pause();
-  player.currentTime = 0;
-  status.innerHTML = 'Stopped';
 });
 
 document.getElementById('next-btn').addEventListener('click', function() {
   flashBtn('next-btn');
   playTrack(idx + 1);
 });
+
+// Tap artwork = play/pause toggle
+var artWrap = document.getElementById('artwork-wrap');
+
+artWrap.addEventListener('click', function() {
+  if (isPlaying) {
+    player.pause();
+  } else {
+    doPlay();
+  }
+});
+
+// Swipe on artwork
+var swipeStartX = 0;
+var swipeStartY = 0;
+var swipeMoved = false;
+
+artWrap.addEventListener('touchstart', function(e) {
+  swipeStartX = e.touches[0].clientX;
+  swipeStartY = e.touches[0].clientY;
+  swipeMoved = false;
+}, false);
+
+artWrap.addEventListener('touchmove', function(e) {
+  swipeMoved = true;
+}, false);
+
+artWrap.addEventListener('touchend', function(e) {
+  var dx = e.changedTouches[0].clientX - swipeStartX;
+  var dy = e.changedTouches[0].clientY - swipeStartY;
+
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    // Definite horizontal swipe — suppress the click event that follows
+    swipeMoved = true;
+    if (dx < 0) {
+      playTrack(idx + 1);
+    } else {
+      if (player.currentTime > 3) {
+        player.currentTime = 0;
+        if (isPlaying) player.play();
+      } else {
+        playTrack(idx - 1);
+      }
+    }
+  }
+}, false);
+
+// Block the click that fires after a swipe
+artWrap.addEventListener('click', function(e) {
+  if (swipeMoved) {
+    swipeMoved = false;
+    return;
+  }
+  if (isPlaying) {
+    player.pause();
+  } else {
+    doPlay();
+  }
+}, false);
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
 
 loadTracks();
 </script>
