@@ -1,4 +1,4 @@
-const CACHE = 'whakatu-v2'; // bump this whenever you push changes
+const CACHE = 'whakatu-v3';
 const STATIC = ['/', '/index.html', '/manifest.json', '/logo.png'];
 
 self.addEventListener('install', e => {
@@ -16,10 +16,17 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Network-first for tracks.json AND index.html
-  if (e.request.url.includes('tracks.json') || 
-      e.request.url.endsWith('/') || 
-      e.request.url.includes('index.html')) {
+  const url = e.request.url;
+
+  // Never intercept audio — let the browser handle range requests natively
+  if (url.includes('/tracks/') && (
+      url.endsWith('.mp3') || url.endsWith('.m4a')
+  )) {
+    return;
+  }
+
+  // Network-first for tracks.json and index.html
+  if (url.includes('tracks.json') || url.endsWith('/') || url.includes('index.html')) {
     e.respondWith(
       fetch(e.request)
         .then(res => {
@@ -31,7 +38,8 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
-  // Cache-first for everything else (audio, images, logo)
+
+  // Cache-first for images, logo etc
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
       const clone = res.clone();
