@@ -6,23 +6,18 @@
 <meta name="theme-color" content="#0a0a0a">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <title>Whakatu Listening Station</title>
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   background: #0a0a0a;
   overflow: hidden;
   touch-action: pan-y;
 }
 
-/* ── layout ── */
 #app {
   position: absolute;
   inset: 0;
@@ -36,20 +31,19 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 14px 16px 8px;
-  background: #0a0a0a;
+  padding: 12px 16px 6px;
 }
 
 #logo {
-  height: 48px;
+  height: 44px;
   width: auto;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 #station-name {
-  font-family: 'Courier New', monospace;
-  font-size: 15px;
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 14px;
   color: #f0ece4;
   letter-spacing: 2px;
   text-align: center;
@@ -57,47 +51,147 @@ html, body {
 }
 
 #month-label {
-  font-family: Arial, sans-serif;
-  font-size: 11px;
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 10px;
   color: #6b6560;
   letter-spacing: 3px;
   text-transform: uppercase;
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
-/* ── artwork area ── */
-#artwork-wrap {
+/* ── stage: record + sleeve ── */
+#stage {
   flex: 1;
   min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 16px;
-  overflow: hidden;
   position: relative;
+  overflow: hidden;
+  padding: 8px 20px;
 }
 
-#artwork {
-  display: block;
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
-  background: #111;
-  transition: transform 0.25s ease, opacity 0.25s ease;
+/* the whole sleeve+record unit animates on swipe */
+#card {
+  position: relative;
+  /* size is set by JS based on available space */
+  width: var(--card-size, 260px);
+  height: var(--card-size, 260px);
+  transition: transform 0.28s cubic-bezier(.4,0,.2,1), opacity 0.28s ease;
+  will-change: transform, opacity;
+}
+
+#card.swipe-out-left  { transform: translateX(-130%) rotate(-8deg); opacity: 0; }
+#card.swipe-out-right { transform: translateX(130%)  rotate(8deg);  opacity: 0; }
+#card.swipe-in-left  { animation: cardInLeft  0.28s cubic-bezier(.4,0,.2,1) forwards; }
+#card.swipe-in-right { animation: cardInRight 0.28s cubic-bezier(.4,0,.2,1) forwards; }
+
+@keyframes cardInLeft  { from { transform: translateX(130%)  rotate(8deg);  opacity: 0; } to { transform: var(--tilt); opacity: 1; } }
+@keyframes cardInRight { from { transform: translateX(-130%) rotate(-8deg); opacity: 0; } to { transform: var(--tilt); opacity: 1; } }
+
+/* vinyl record — behind and peeking right */
+#record {
+  position: absolute;
+  top: 8%;
+  right: -18%;
+  width: 82%;
+  height: 82%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%,
+    #1a1a1a 0%,
+    #1a1a1a 14%,
+    #2a2a2a 14.5%,
+    #111 16%,
+    #222 17%,
+    #111 20%,
+    #222 23%,
+    #111 26%,
+    #222 30%,
+    #111 34%,
+    #222 38%,
+    #111 42%,
+    #222 47%,
+    #111 50%
+  );
+  box-shadow: 0 4px 24px rgba(0,0,0,0.7);
+  animation: none;
   will-change: transform;
+  /* subtle grooves via repeating conic gradient overlay */
 }
 
-/* swipe animation classes */
-#artwork.swipe-left  { transform: translateX(-110%); opacity: 0; }
-#artwork.swipe-right { transform: translateX(110%);  opacity: 0; }
-#artwork.swipe-in-left  { animation: slideInLeft  0.25s ease forwards; }
-#artwork.swipe-in-right { animation: slideInRight 0.25s ease forwards; }
+#record::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    rgba(255,255,255,0.015) 0deg,
+    rgba(0,0,0,0) 1deg,
+    rgba(0,0,0,0) 3deg,
+    rgba(255,255,255,0.015) 4deg
+  );
+}
 
-@keyframes slideInLeft  { from { transform: translateX(110%);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-@keyframes slideInRight { from { transform: translateX(-110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+/* centre label */
+#record::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 28%; height: 28%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #c8a96e 0%, #8b6914 60%, #5a4008 100%);
+  z-index: 1;
+}
 
-/* ── track indicator dots ── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+#record.playing {
+  animation: spin 2s linear infinite;
+}
+
+#record.slowing {
+  /* JS handles deceleration via inline style */
+}
+
+/* album sleeve */
+#sleeve {
+  position: absolute;
+  top: 0; left: 0;
+  width: 88%;
+  height: 88%;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.8),
+    0 2px 8px rgba(0,0,0,0.6),
+    inset 0 0 0 1px rgba(255,255,255,0.04);
+  background: #111;
+  z-index: 2;
+}
+
+#sleeve-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+#sleeve-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+  color: #333;
+  font-size: 48px;
+}
+
+/* ── dots ── */
 #track-dots {
   flex-shrink: 0;
   display: flex;
@@ -105,42 +199,76 @@ html, body {
   align-items: center;
   gap: 6px;
   padding: 4px 16px;
-  min-height: 20px;
+  min-height: 18px;
   flex-wrap: wrap;
 }
 
 .dot {
-  width: 7px;
-  height: 7px;
+  width: 6px; height: 6px;
   border-radius: 50%;
-  background: #333;
+  background: #2a2a2a;
+  border: 1px solid #444;
   transition: background 0.2s, transform 0.2s;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .dot.active {
   background: #c8a96e;
-  transform: scale(1.3);
+  border-color: #c8a96e;
+  transform: scale(1.4);
 }
 
 /* ── controls bar ── */
 #controls-bar {
   flex-shrink: 0;
-  background: #111;
-  border-top: 1px solid #2a2a2a;
-  padding: 8px 12px;
+  background: #0f0f0f;
+  border-top: 1px solid #1e1e1e;
+  padding: 8px 12px 10px;
 }
 
-#track-title {
-  font-family: Arial, sans-serif;
-  font-size: 18px;
-  color: #f0ece4;
-  text-align: center;
-  white-space: nowrap;
+/* LCD marquee title */
+#title-wrap {
+  width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
   margin-bottom: 8px;
-  min-height: 1.2em;
+  position: relative;
+  height: 1.5em;
+  /* subtle LCD screen effect */
+  background: #050e05;
+  border: 1px solid #1a2a1a;
+  border-radius: 3px;
+  padding: 2px 8px;
+}
+
+#title-wrap::before,
+#title-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 24px;
+  z-index: 2;
+  pointer-events: none;
+}
+#title-wrap::before { left: 0;  background: linear-gradient(to right, #050e05, transparent); }
+#title-wrap::after  { right: 0; background: linear-gradient(to left,  #050e05, transparent); }
+
+#track-title {
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 15px;
+  color: #4aff4a;
+  text-shadow: 0 0 8px rgba(74,255,74,0.5);
+  white-space: nowrap;
+  display: inline-block;
+  line-height: 1.5em;
+  /* marquee animation applied via JS */
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(0); }
+  85%  { transform: translateX(var(--marquee-dist)); }
+  100% { transform: translateX(var(--marquee-dist)); }
 }
 
 #controls-row {
@@ -152,51 +280,53 @@ html, body {
 #buttons {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .ctrl-btn {
-  background: #2a2a2a;
-  border: 2px solid #666;
-  color: #f0ece4;
-  border-radius: 10px;
-  width: 64px;
+  background: #1a1a1a;
+  border: 2px solid #3a3a3a;
+  color: #c8a96e;
+  border-radius: 8px;
+  width: 62px;
   height: 40px;
-  font-size: 18px;
+  font-size: 17px;
   line-height: 36px;
   text-align: center;
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 .ctrl-btn.active {
-  background: #3a3a3a;
+  background: #2a2a1a;
   border-color: #c8a96e;
+  box-shadow: 0 0 10px rgba(200,169,110,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 #fullscreen-btn {
   background: none;
   border: none;
-  color: #555;
+  color: #333;
   font-size: 20px;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 4px 6px;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   line-height: 1;
+  transition: color 0.15s;
 }
-
 #fullscreen-btn:active { color: #c8a96e; }
 
 #version {
-  font-family: Arial, sans-serif;
-  font-size: 9px;
-  color: #1e1e1e;
-  letter-spacing: 1px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px;
+  color: #1a1a1a;
   text-align: right;
   margin-top: 4px;
+  letter-spacing: 1px;
 }
 </style>
 </head>
@@ -210,14 +340,22 @@ html, body {
     <div id="month-label"></div>
   </div>
 
-  <div id="artwork-wrap">
-    <img id="artwork" src="" alt="">
+  <div id="stage">
+    <div id="card">
+      <div id="record"></div>
+      <div id="sleeve">
+        <img id="sleeve-img" src="" alt="">
+        <div id="sleeve-placeholder">♪</div>
+      </div>
+    </div>
   </div>
 
   <div id="track-dots"></div>
 
   <div id="controls-bar">
-    <div id="track-title"></div>
+    <div id="title-wrap">
+      <span id="track-title"></span>
+    </div>
     <div id="controls-row">
       <div id="buttons">
         <div class="ctrl-btn" id="prev-btn">&#9664;&#9664;</div>
@@ -226,7 +364,7 @@ html, body {
       </div>
       <button id="fullscreen-btn" title="Fullscreen">&#x26F6;</button>
     </div>
-    <div id="version">v2.1</div>
+    <div id="version">v2.2</div>
   </div>
 
 </div>
@@ -243,52 +381,175 @@ var tracks  = [];
 var idx     = 0;
 var playing = false;
 var player  = document.getElementById('player');
-var artwork = document.getElementById('artwork');
-var trackTitle = document.getElementById('track-title');
-var playBtn    = document.getElementById('play-btn');
-var dotsEl     = document.getElementById('track-dots');
+var card    = document.getElementById('card');
+var record  = document.getElementById('record');
+var sleeveImg = document.getElementById('sleeve-img');
+var sleevePlaceholder = document.getElementById('sleeve-placeholder');
+var trackTitleEl = document.getElementById('track-title');
+var playBtn  = document.getElementById('play-btn');
+var dotsEl   = document.getElementById('track-dots');
 
-// ── dots ─────────────────────────────────────────────────────────────────────
+// per-track tilt angles — cycles through for variety
+var tilts = [
+  'rotate(-3deg)',
+  'rotate(2deg)',
+  'rotate(-5deg)',
+  'rotate(4deg)',
+  'rotate(-2deg)',
+  'rotate(5deg)',
+  'rotate(-4deg)',
+  'rotate(3deg)',
+  'rotate(-1deg)',
+  'rotate(6deg)',
+  'rotate(-3deg)'
+];
+
+// ── card sizing ───────────────────────────────────────────────────────────────
+
+function sizeCard() {
+  var stage = document.getElementById('stage');
+  var w = stage.clientWidth  - 48;
+  var h = stage.clientHeight - 16;
+  var size = Math.min(w, h, 340);
+  card.style.setProperty('--card-size', size + 'px');
+  card.style.width  = size + 'px';
+  card.style.height = size + 'px';
+}
+
+window.addEventListener('resize', sizeCard);
+sizeCard();
+
+// ── record spin ───────────────────────────────────────────────────────────────
+
+var spinAngle = 0;
+var spinSpeed = 0;         // deg per frame
+var targetSpeed = 0.4;     // deg per frame when playing (~24rpm)
+var slowTimer = null;
+var spinRAF = null;
+var lastTimestamp = null;
+
+function spinLoop(ts) {
+  if (lastTimestamp === null) lastTimestamp = ts;
+  var dt = Math.min(ts - lastTimestamp, 64); // cap at ~2 frames
+  lastTimestamp = ts;
+
+  spinAngle = (spinAngle + spinSpeed * (dt / 16.67)) % 360;
+  record.style.transform = 'rotate(' + spinAngle + 'deg)';
+
+  if (spinSpeed > 0.005) {
+    spinRAF = requestAnimationFrame(spinLoop);
+  } else {
+    spinSpeed = 0;
+    spinRAF = null;
+    lastTimestamp = null;
+  }
+}
+
+function startSpin() {
+  targetSpeed = 0.4;
+  spinSpeed = spinSpeed || 0.05;
+  if (!spinRAF) {
+    lastTimestamp = null;
+    spinRAF = requestAnimationFrame(spinLoop);
+  }
+  // accelerate to target speed
+  function accel() {
+    if (spinSpeed < targetSpeed) {
+      spinSpeed = Math.min(spinSpeed * 1.08 + 0.005, targetSpeed);
+      setTimeout(accel, 16);
+    }
+  }
+  accel();
+}
+
+function stopSpin() {
+  // decelerate gradually
+  function decel() {
+    if (spinSpeed > 0.005) {
+      spinSpeed *= 0.96;
+      setTimeout(decel, 16);
+    } else {
+      spinSpeed = 0;
+    }
+  }
+  decel();
+}
+
+// ── marquee title ─────────────────────────────────────────────────────────────
+
+function updateMarquee() {
+  var wrap = document.getElementById('title-wrap');
+  var el   = trackTitleEl;
+  el.style.animation = 'none';
+  el.style.transform = 'translateX(0)';
+  // measure after paint
+  requestAnimationFrame(function() {
+    var overflow = el.scrollWidth - wrap.clientWidth + 16;
+    if (overflow > 10) {
+      var duration = Math.max(4, overflow / 40); // ~40px/s
+      el.style.setProperty('--marquee-dist', '-' + overflow + 'px');
+      el.style.animation = 'marquee ' + duration + 's ease-in-out ' + '1.5s infinite alternate';
+    }
+  });
+}
+
+// ── dots ──────────────────────────────────────────────────────────────────────
 
 function buildDots() {
   dotsEl.innerHTML = '';
   tracks.forEach(function(_, i) {
     var d = document.createElement('div');
     d.className = 'dot' + (i === idx ? ' active' : '');
-    d.addEventListener('click', function() { playTrack(i); });
+    d.addEventListener('click', function() { playTrack(i, null); });
     dotsEl.appendChild(d);
   });
 }
 
 function updateDots() {
-  var dots = dotsEl.querySelectorAll('.dot');
-  dots.forEach(function(d, i) {
+  dotsEl.querySelectorAll('.dot').forEach(function(d, i) {
     d.className = 'dot' + (i === idx ? ' active' : '');
   });
 }
 
-// ── track display ─────────────────────────────────────────────────────────────
+// ── show track ────────────────────────────────────────────────────────────────
+
+function applyTilt() {
+  var tilt = tilts[idx % tilts.length];
+  card.style.setProperty('--tilt', tilt);
+  card.style.transform = tilt;
+}
+
+function setSleeveImage(src) {
+  if (src) {
+    sleeveImg.src = src;
+    sleeveImg.style.display = 'block';
+    sleevePlaceholder.style.display = 'none';
+  } else {
+    sleeveImg.style.display = 'none';
+    sleevePlaceholder.style.display = 'flex';
+  }
+}
 
 function showTrack(i, direction) {
   idx = ((i % tracks.length) + tracks.length) % tracks.length;
   var t = tracks[idx];
-  trackTitle.textContent = t.title;
+  trackTitleEl.textContent = t.title;
   player.src = t.audio;
   updateDots();
+  updateMarquee();
 
   if (direction) {
-    // animate out
-    artwork.className = direction === 'next' ? 'swipe-left' : 'swipe-right';
-    var newSrc = t.image || '';
+    card.className = direction === 'next' ? 'swipe-out-left' : 'swipe-out-right';
     setTimeout(function() {
-      artwork.src = newSrc;
-      artwork.style.display = newSrc ? 'block' : 'none';
-      artwork.className = direction === 'next' ? 'swipe-in-left' : 'swipe-in-right';
-    }, 220);
+      setSleeveImage(t.image);
+      applyTilt();
+      card.className = direction === 'next' ? 'swipe-in-left' : 'swipe-in-right';
+      setTimeout(function() { card.className = ''; }, 300);
+    }, 250);
   } else {
-    artwork.className = '';
-    artwork.src = t.image || '';
-    artwork.style.display = t.image ? 'block' : 'none';
+    card.className = '';
+    setSleeveImage(t.image);
+    applyTilt();
   }
 }
 
@@ -298,18 +559,28 @@ function setPlayBtn(isPlaying) {
   playBtn.innerHTML = isPlaying ? '&#9646;&#9646;' : '&#9654;';
 }
 
+function haptic(pattern) {
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
 function playTrack(i, direction) {
   showTrack(i, direction);
   playing = true;
   setPlayBtn(true);
+  startSpin();
   player.play().catch(function() {
     playing = false;
     setPlayBtn(false);
+    stopSpin();
   });
 }
 
 player.addEventListener('ended', function() {
   if (playing) playTrack(idx + 1, 'next');
+});
+
+player.addEventListener('pause', function() {
+  if (!playing) stopSpin();
 });
 
 // ── buttons ───────────────────────────────────────────────────────────────────
@@ -322,6 +593,7 @@ function flash(id) {
 
 document.getElementById('prev-btn').addEventListener('click', function() {
   flash('prev-btn');
+  haptic(30);
   if (player.currentTime > 3) {
     player.currentTime = 0;
     if (playing) player.play();
@@ -332,10 +604,12 @@ document.getElementById('prev-btn').addEventListener('click', function() {
 
 playBtn.addEventListener('click', function() {
   flash('play-btn');
+  haptic(40);
   if (playing) {
     playing = false;
     player.pause();
     setPlayBtn(false);
+    stopSpin();
   } else {
     playTrack(idx, null);
   }
@@ -343,6 +617,7 @@ playBtn.addEventListener('click', function() {
 
 document.getElementById('next-btn').addEventListener('click', function() {
   flash('next-btn');
+  haptic(30);
   playTrack(idx + 1, 'next');
 });
 
@@ -380,8 +655,7 @@ document.addEventListener('touchmove', function(e) {
   if (!swipeActive) return;
   var dx = e.touches[0].clientX - swipeStartX;
   var dy = e.touches[0].clientY - swipeStartY;
-  // cancel if more vertical than horizontal
-  if (Math.abs(dy) > Math.abs(dx)) { swipeActive = false; }
+  if (Math.abs(dy) > Math.abs(dx)) swipeActive = false;
 }, { passive: true });
 
 document.addEventListener('touchend', function(e) {
@@ -390,6 +664,7 @@ document.addEventListener('touchend', function(e) {
   var dx = e.changedTouches[0].clientX - swipeStartX;
   var dy = e.changedTouches[0].clientY - swipeStartY;
   if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+  haptic(20);
   if (dx < 0) {
     playTrack(idx + 1, 'next');
   } else {
