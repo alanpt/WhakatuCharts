@@ -115,8 +115,9 @@ function runEnvTests() {
   var iosMatch = ua.match(/OS (\d+)_(\d+)/);
   if (iosMatch) {
     var major = parseInt(iosMatch[1]);
-    var badge = major >= 13 ? 'pass' : major === 12 ? 'warn' : 'fail';
-    el.appendChild(makeTest('iOS Version', badge, 'iOS ' + major + '.' + iosMatch[2] + (major < 13 ? ' — limited audio autoplay support' : '')));
+    var badge = major >= 13 ? 'pass' : major >= 10 ? 'warn' : 'fail';
+    var note = major >= 13 ? '' : major >= 10 ? ' — limited autoplay support' : ' — very limited audio support. Check mute switch and volume!';
+    el.appendChild(makeTest('iOS Version', badge, 'iOS ' + major + '.' + iosMatch[2] + note));
   } else {
     el.appendChild(makeTest('iOS Version', 'info', 'Not iOS (or version not detected)'));
   }
