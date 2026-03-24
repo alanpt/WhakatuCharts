@@ -81,7 +81,6 @@ html, body {
   -ms-flex-pack: center;
   justify-content: center;
   min-height: 0;
-  cursor: pointer;
 }
 
 #artwork {
@@ -91,13 +90,9 @@ html, body {
   width: auto;
   height: auto;
   background: #111;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
 }
 
+/* Controls bar */
 #controls-bar {
   position: absolute;
   left: 0;
@@ -205,50 +200,9 @@ html, body {
   background: #3a3a3a;
   border-color: #c8a96e;
 }
-
-#playstop-btn.playing {
-  border-color: #c8a96e;
-  color: #c8a96e;
-}
-
-#unlock-screen {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: #0a0a0a;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  z-index: 999;
-  cursor: pointer;
-}
-
-#unlock-btn {
-  font-family: Courier New, serif;
-  font-size: 20px;
-  color: white;
-  background: #2a2a2a;
-  border: 2px solid #666;
-  border-radius: 10px;
-  padding: 20px 40px;
-  text-align: center;
-  -webkit-tap-highlight-color: transparent;
-}
 </style>
 </head>
 <body>
-
-<!-- iOS 9 requires audio to be started inside a direct touch event.
-     This overlay captures that first touch and unlocks the audio element
-     before any src is set. -->
-<div id="unlock-screen">
-  <div id="unlock-btn">Tap to open<br>Listening Station</div>
-</div>
 
 <div id="art-area">
   <div id="header">
@@ -268,7 +222,7 @@ html, body {
     </div>
     <div id="buttons">
       <div class="ctrl-btn" id="prev-btn">&#9664;&#9664;</div>
-      <div class="ctrl-btn" id="playstop-btn">&#9654;</div>
+      <div class="ctrl-btn" id="stop-btn">&#9646;&#9646;</div>
       <div class="ctrl-btn" id="next-btn">&#9654;&#9654;</div>
     </div>
     <div id="status-wrap">
@@ -277,9 +231,7 @@ html, body {
   </div>
 </div>
 
-<!-- src is intentionally empty here — iOS 9 needs load() called in a
-     touch handler before src is ever assigned -->
-<audio id="player" src=""></audio>
+<audio id="player"></audio>
 
 <script>
 var months = ['January','February','March','April','May','June',
@@ -289,51 +241,11 @@ document.getElementById('month-label').innerHTML =
 
 var tracks = [];
 var idx = 0;
-var isPlaying = false;
-var audioUnlocked = false;
-
+var stopped = false;
 var player = document.getElementById('player');
 var artwork = document.getElementById('artwork');
 var trackTitle = document.getElementById('track-title');
 var status = document.getElementById('status');
-var playstopBtn = document.getElementById('playstop-btn');
-var unlockScreen = document.getElementById('unlock-screen');
-
-// The unlock screen tap is the one synchronous touch that iOS 9 needs.
-// We call player.load() here with no src — this registers the audio
-// element with Safari's media system inside a real user gesture.
-unlockScreen.addEventListener('touchend', function(e) {
-  e.preventDefault();
-  doUnlock();
-}, false);
-
-// Fallback for desktop / newer devices
-unlockScreen.addEventListener('click', function() {
-  doUnlock();
-}, false);
-
-function doUnlock() {
-  if (audioUnlocked) return;
-  audioUnlocked = true;
-  // Call load() with empty src inside this touch event — unlocks iOS audio
-  player.load();
-  unlockScreen.style.display = 'none';
-  // Now load and show the first track (no autoplay yet — user must tap)
-  if (tracks.length > 0) {
-    showTrack(0);
-  }
-}
-
-function setPlayingState(playing) {
-  isPlaying = playing;
-  if (playing) {
-    playstopBtn.innerHTML = '&#9646;&#9646;';
-    playstopBtn.className = 'ctrl-btn playing';
-  } else {
-    playstopBtn.innerHTML = '&#9654;';
-    playstopBtn.className = 'ctrl-btn';
-  }
-}
 
 function loadTracks() {
   var xhr = new XMLHttpRequest();
@@ -341,12 +253,17 @@ function loadTracks() {
   xhr.onreadystatechange = function() {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
-        try { tracks = JSON.parse(xhr.responseText); }
-        catch(e) { tracks = []; }
-        if (!tracks.length) {
+        try {
+          tracks = JSON.parse(xhr.responseText);
+        } catch(e) {
+          tracks = [];
+        }
+        if (tracks.length > 0) {
+          status.innerHTML = '';
+          showTrack(0);
+        } else {
           status.innerHTML = 'No tracks';
         }
-        // Don't call showTrack here — wait for unlock tap
       } else {
         status.innerHTML = 'Error ' + xhr.status;
       }
@@ -355,7 +272,6 @@ function loadTracks() {
   xhr.send();
 }
 
-// showTrack updates UI and src but does NOT play
 function showTrack(i) {
   idx = ((i % tracks.length) + tracks.length) % tracks.length;
   var t = tracks[idx];
@@ -366,115 +282,56 @@ function showTrack(i) {
   } else {
     artwork.style.display = 'none';
   }
-  // Set src and load AFTER audio has been unlocked
   player.src = t.audio;
-  player.load();
-  setPlayingState(false);
 }
 
-// playTrack changes track and plays — must be called from a touch/click handler
 function playTrack(i) {
-  idx = ((i % tracks.length) + tracks.length) % tracks.length;
-  var t = tracks[idx];
-  trackTitle.innerHTML = t.title;
-  if (t.image) {
-    artwork.src = t.image;
-    artwork.style.display = 'block';
-  } else {
-    artwork.style.display = 'none';
+  stopped = false;
+  showTrack(i);
+  var p = player.play();
+  if (p !== undefined) {
+    p.then(function() {
+      status.innerHTML = '';
+    }).catch(function() {
+      status.innerHTML = 'Tap play';
+    });
   }
-  player.src = t.audio;
-  player.load();
-  player.play();
-  setPlayingState(true);
 }
 
 player.addEventListener('ended', function() {
-  playTrack(idx + 1);
-});
-
-player.addEventListener('pause', function() {
-  setPlayingState(false);
-});
-
-player.addEventListener('play', function() {
-  setPlayingState(true);
-  status.innerHTML = '';
-});
-
-// Play/stop toggle
-playstopBtn.addEventListener('click', function() {
-  if (isPlaying) {
-    player.pause();
-    player.currentTime = 0;
-    setPlayingState(false);
-  } else {
-    player.play();
+  if (!stopped) {
+    playTrack(idx + 1);
   }
 });
 
 function flashBtn(id) {
   var el = document.getElementById(id);
-  var prev = el.className;
   el.className = 'ctrl-btn active';
-  setTimeout(function() { el.className = prev; }, 200);
+  setTimeout(function() { el.className = 'ctrl-btn'; }, 200);
 }
 
 document.getElementById('prev-btn').addEventListener('click', function() {
   flashBtn('prev-btn');
   if (player.currentTime > 3) {
     player.currentTime = 0;
-    if (isPlaying) player.play();
+    if (!stopped) player.play();
   } else {
     playTrack(idx - 1);
   }
+});
+
+document.getElementById('stop-btn').addEventListener('click', function() {
+  flashBtn('stop-btn');
+  stopped = true;
+  player.pause();
+  player.currentTime = 0;
+  status.innerHTML = 'Stopped';
 });
 
 document.getElementById('next-btn').addEventListener('click', function() {
   flashBtn('next-btn');
   playTrack(idx + 1);
 });
-
-// Swipe and tap on artwork
-var artWrap = document.getElementById('artwork-wrap');
-var swipeStartX = 0;
-var swipeStartY = 0;
-var didSwipe = false;
-
-artWrap.addEventListener('touchstart', function(e) {
-  swipeStartX = e.touches[0].clientX;
-  swipeStartY = e.touches[0].clientY;
-  didSwipe = false;
-}, false);
-
-artWrap.addEventListener('touchend', function(e) {
-  var dx = e.changedTouches[0].clientX - swipeStartX;
-  var dy = e.changedTouches[0].clientY - swipeStartY;
-  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-    didSwipe = true;
-    if (dx < 0) {
-      playTrack(idx + 1);
-    } else {
-      if (player.currentTime > 3) {
-        player.currentTime = 0;
-        if (isPlaying) player.play();
-      } else {
-        playTrack(idx - 1);
-      }
-    }
-  }
-}, false);
-
-artWrap.addEventListener('click', function() {
-  if (didSwipe) { didSwipe = false; return; }
-  if (isPlaying) {
-    player.pause();
-  } else {
-    player.play();
-  }
-}, false);
-
-
 
 loadTracks();
 </script>
