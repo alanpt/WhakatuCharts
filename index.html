@@ -208,7 +208,7 @@ html, body {
   <div id="header">
     <div id="station-name">Whakatū Hits Listening Station</div>
     <div id="month-label"></div>
-    <div style="font-family:Arial,sans-serif;font-size:10px;color:#333;margin-top:4px;letter-spacing:1px;">v1.3</div>
+    <div style="font-family:Arial,sans-serif;font-size:10px;color:#333;margin-top:4px;letter-spacing:1px;">v1.4</div>
   </div>
   <div id="artwork-wrap">
     <img id="artwork" src="" alt="">
@@ -355,6 +355,16 @@ document.getElementById('next-btn').addEventListener('click', function() {
 });
 
 loadTracks();
+
+try {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+      for (var i = 0; i < registrations.length; i++) {
+        registrations[i].unregister();
+      }
+    });
+  }
+} catch(e) {}
 </script>
 </body>
 </html>

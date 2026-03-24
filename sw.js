@@ -1,5 +1,5 @@
-const CACHE = 'whakatu-v1';
-const STATIC = ['/', '/index.html', '/manifest.json', '/logo.png'];
+var CACHE = 'whakatu-v3';
+var STATIC = ['/', '/index.html', '/manifest.json', '/logo.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)));
