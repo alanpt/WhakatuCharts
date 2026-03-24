@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#2a2520">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -12,10 +12,11 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   background: #2a2520;
   overflow: hidden;
-  touch-action: pan-y;
+  touch-action: none;
 }
 
 #app {
@@ -25,11 +26,8 @@ html, body {
   flex-direction: column;
 }
 
-/* ── no header — logo moves to footer ── */
-
-/* ── stage: record + sleeve ── */
+/* ── stage ── */
 #stage {
-  background: #2a2520;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -37,67 +35,61 @@ html, body {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  padding: 8px 20px;
+  padding: 12px 20px 4px;
+  background: #2a2520;
 }
 
-/* the whole sleeve+record unit animates on swipe */
+/* ── card (sleeve + record together) ── */
 #card {
   position: relative;
-  /* size is set by JS based on available space */
-  width: var(--card-size, 260px);
-  height: var(--card-size, 260px);
-  transition: transform 0.28s cubic-bezier(.4,0,.2,1), opacity 0.28s ease;
+  width: 260px;
+  height: 260px;
   will-change: transform, opacity;
 }
 
-#card.swipe-out-left  { transform: translateX(-130%) rotate(-8deg); opacity: 0; }
-#card.swipe-out-right { transform: translateX(130%)  rotate(8deg);  opacity: 0; }
-#card.swipe-in-left  { animation: cardInLeft  0.28s cubic-bezier(.4,0,.2,1) forwards; }
-#card.swipe-in-right { animation: cardInRight 0.28s cubic-bezier(.4,0,.2,1) forwards; }
+#card.out-left  { animation: outLeft  0.26s ease forwards; }
+#card.out-right { animation: outRight 0.26s ease forwards; }
+#card.in-left   { animation: inLeft   0.26s ease forwards; }
+#card.in-right  { animation: inRight  0.26s ease forwards; }
 
-@keyframes cardInLeft  { from { transform: translateX(130%)  rotate(8deg);  opacity: 0; } to { transform: var(--tilt); opacity: 1; } }
-@keyframes cardInRight { from { transform: translateX(-130%) rotate(-8deg); opacity: 0; } to { transform: var(--tilt); opacity: 1; } }
+@keyframes outLeft  { to { transform: translateX(-140%) rotate(-6deg); opacity: 0; } }
+@keyframes outRight { to { transform: translateX(140%)  rotate(6deg);  opacity: 0; } }
+@keyframes inLeft   { from { transform: translateX(140%)  rotate(6deg);  opacity: 0; } to { transform: var(--tilt, rotate(0deg)); opacity: 1; } }
+@keyframes inRight  { from { transform: translateX(-140%) rotate(-6deg); opacity: 0; } to { transform: var(--tilt, rotate(0deg)); opacity: 1; } }
 
-/* vinyl record — behind and peeking right */
+/* ── vinyl record ── */
 #record {
   position: absolute;
-  top: 8%;
-  right: -18%;
-  width: 82%;
-  height: 82%;
+  bottom: -10%;
+  right: -20%;
+  width: 80%;
+  height: 80%;
   border-radius: 50%;
   background: radial-gradient(circle at 50% 50%,
-    #1a1a1a 0%,
-    #1a1a1a 14%,
-    #3a3a3a 14.5%,
-    #1a1a1a 16%,
-    #444 17%,
-    #1a1a1a 20%,
-    #444 23%,
-    #1a1a1a 26%,
-    #444 30%,
-    #1a1a1a 34%,
-    #444 38%,
-    #1a1a1a 42%,
-    #444 47%,
-    #1a1a1a 50%
+    #111 0%, #111 13%,
+    #555 13.5%, #111 15%,
+    #444 18%, #111 21%,
+    #444 25%, #111 29%,
+    #444 33%, #111 38%,
+    #444 43%, #111 48%,
+    #333 50%
   );
-  box-shadow: 0 4px 24px rgba(0,0,0,0.7);
-  animation: none;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.85);
   will-change: transform;
-  /* subtle grooves via repeating conic gradient overlay */
+  transform: rotate(0deg);
 }
 
+/* grooves */
 #record::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 50%;
   background: repeating-conic-gradient(
-    rgba(255,255,255,0.06) 0deg,
-    rgba(0,0,0,0) 1deg,
+    rgba(255,255,255,0.07) 0deg,
+    rgba(0,0,0,0) 1.5deg,
     rgba(0,0,0,0) 3deg,
-    rgba(255,255,255,0.06) 4deg
+    rgba(255,255,255,0.07) 4.5deg
   );
 }
 
@@ -106,40 +98,29 @@ html, body {
   content: '';
   position: absolute;
   top: 50%; left: 50%;
-  width: 28%; height: 28%;
+  width: 26%; height: 26%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle, #c8a96e 0%, #8b6914 60%, #5a4008 100%);
+  background: radial-gradient(circle, #d4b06a 0%, #8b6914 55%, #4a3006 100%);
   z-index: 1;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.6);
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-#record.playing {
-  animation: spin 2s linear infinite;
-}
-
-#record.slowing {
-  /* JS handles deceleration via inline style */
-}
-
-/* album sleeve */
+/* ── album sleeve ── */
 #sleeve {
   position: absolute;
-  top: 0; left: 0;
-  width: 88%;
-  height: 88%;
-  border-radius: 3px;
+  top: 0;
+  left: 0;
+  width: 84%;
+  height: 84%;
+  border-radius: 4px;
   overflow: hidden;
-  box-shadow:
-    0 8px 32px rgba(0,0,0,0.8),
-    0 2px 8px rgba(0,0,0,0.6),
-    inset 0 0 0 1px rgba(255,255,255,0.04);
-  background: #111;
   z-index: 2;
+  background: #1a1a1a;
+  box-shadow:
+    0 10px 40px rgba(0,0,0,0.9),
+    0 3px 10px rgba(0,0,0,0.7),
+    inset 0 0 0 1px rgba(255,255,255,0.05);
 }
 
 #sleeve-img {
@@ -155,9 +136,9 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1a1a1a;
-  color: #333;
-  font-size: 48px;
+  font-size: 52px;
+  color: #2a2a2a;
+  background: #141414;
 }
 
 /* ── dots ── */
@@ -165,21 +146,21 @@ html, body {
   flex-shrink: 0;
   display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 16px;
-  min-height: 18px;
   flex-wrap: wrap;
+  gap: 5px;
+  padding: 5px 16px;
+  min-height: 18px;
 }
 
 .dot {
-  width: 6px; height: 6px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: #2a2a2a;
-  border: 1px solid #444;
+  background: #3a3530;
+  border: 1px solid #504840;
   transition: background 0.2s, transform 0.2s;
-  flex-shrink: 0;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .dot.active {
@@ -191,30 +172,20 @@ html, body {
 /* ── controls bar ── */
 #controls-bar {
   flex-shrink: 0;
-  background: #1a1714;
-  border-top: 1px solid #2e2a26;
-  padding: 8px 12px 10px;
+  background: #1c1814;
+  border-top: 1px solid #302820;
+  padding: 7px 10px 9px;
 }
 
-/* logo in footer */
-#footer-logo {
-  display: block;
-  height: 32px;
-  width: auto;
-  margin: 0 auto 6px;
-  opacity: 0.7;
-}
-
-/* LCD marquee title */
+/* LCD title */
 #title-wrap {
   width: 100%;
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 7px;
   position: relative;
-  height: 1.5em;
-  /* subtle LCD screen effect */
-  background: #050e05;
-  border: 1px solid #1a2a1a;
+  height: 1.6em;
+  background: #040d04;
+  border: 1px solid #162016;
   border-radius: 3px;
   padding: 2px 8px;
 }
@@ -224,49 +195,59 @@ html, body {
   content: '';
   position: absolute;
   top: 0; bottom: 0;
-  width: 24px;
+  width: 20px;
   z-index: 2;
   pointer-events: none;
 }
-#title-wrap::before { left: 0;  background: linear-gradient(to right, #050e05, transparent); }
-#title-wrap::after  { right: 0; background: linear-gradient(to left,  #050e05, transparent); }
+#title-wrap::before { left: 0;  background: linear-gradient(to right, #040d04, transparent); }
+#title-wrap::after  { right: 0; background: linear-gradient(to left,  #040d04, transparent); }
 
 #track-title {
   font-family: 'Share Tech Mono', 'Courier New', monospace;
-  font-size: 15px;
-  color: #4aff4a;
-  text-shadow: 0 0 8px rgba(74,255,74,0.5);
+  font-size: 14px;
+  color: #44ee44;
+  text-shadow: 0 0 8px rgba(68,238,68,0.6);
   white-space: nowrap;
   display: inline-block;
-  line-height: 1.5em;
-  /* marquee animation applied via JS */
+  line-height: 1.6em;
 }
 
 @keyframes marquee {
   0%   { transform: translateX(0); }
   15%  { transform: translateX(0); }
-  85%  { transform: translateX(var(--marquee-dist)); }
-  100% { transform: translateX(var(--marquee-dist)); }
+  85%  { transform: translateX(var(--mdist)); }
+  100% { transform: translateX(var(--mdist)); }
 }
 
+/* controls row: logo | buttons | fullscreen */
 #controls-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-#buttons {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+#footer-logo {
+  height: 34px;
+  width: auto;
+  flex-shrink: 0;
+  display: block;
+  opacity: 0.85;
+}
+
+#buttons {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .ctrl-btn {
-  background: #1a1a1a;
-  border: 2px solid #3a3a3a;
+  background: #1a1714;
+  border: 2px solid #3a3530;
   color: #c8a96e;
   border-radius: 8px;
-  width: 62px;
+  width: 60px;
   height: 40px;
   font-size: 17px;
   line-height: 36px;
@@ -275,41 +256,40 @@ html, body {
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
 .ctrl-btn.active {
-  background: #2a2a1a;
+  background: #2a2010;
   border-color: #c8a96e;
-  box-shadow: 0 0 10px rgba(200,169,110,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow: 0 0 10px rgba(200,169,110,0.3);
 }
 
 #fullscreen-btn {
   background: none;
   border: none;
-  color: #333;
-  font-size: 20px;
+  color: #4a4035;
+  font-size: 22px;
   cursor: pointer;
   padding: 4px 6px;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   line-height: 1;
+  flex-shrink: 0;
   transition: color 0.15s;
 }
 #fullscreen-btn:active { color: #c8a96e; }
 
 #version {
-  font-family: 'Share Tech Mono', monospace;
   font-size: 8px;
-  color: #1a1a1a;
+  color: #1c1814;
   text-align: right;
-  margin-top: 4px;
-  letter-spacing: 1px;
+  margin-top: 3px;
+  font-family: monospace;
 }
 </style>
 </head>
 <body>
-
 <div id="app">
 
   <div id="stage">
@@ -325,56 +305,40 @@ html, body {
   <div id="track-dots"></div>
 
   <div id="controls-bar">
-    <div id="title-wrap">
-      <span id="track-title"></span>
-    </div>
+    <div id="title-wrap"><span id="track-title"></span></div>
     <div id="controls-row">
+      <img id="footer-logo" src="logo.png" alt="WAA" onerror="this.style.display='none'">
       <div id="buttons">
         <div class="ctrl-btn" id="prev-btn">&#9664;&#9664;</div>
         <div class="ctrl-btn" id="play-btn">&#9654;</div>
         <div class="ctrl-btn" id="next-btn">&#9654;&#9654;</div>
       </div>
-      <button id="fullscreen-btn" title="Fullscreen">&#x26F6;</button>
+      <button id="fullscreen-btn">&#x26F6;</button>
     </div>
-    <div id="version">v2.3</div>
+    <div id="version">v2.4</div>
   </div>
-  <img id="footer-logo" src="logo.png" alt="WAA" onerror="this.style.display='none'">
 
 </div>
-
 <audio id="player" preload="none"></audio>
 
 <script>
-var months = ['January','February','March','April','May','June',
-  'July','August','September','October','November','December'];
-document.getElementById('month-label').textContent =
-  'Hits of ' + months[new Date().getMonth()];
+var tracks   = [];
+var idx      = 0;
+var playing  = false;
+var player   = document.getElementById('player');
+var card     = document.getElementById('card');
+var record   = document.getElementById('record');
+var sleeveImg     = document.getElementById('sleeve-img');
+var sleevePH      = document.getElementById('sleeve-placeholder');
+var trackTitleEl  = document.getElementById('track-title');
+var playBtn       = document.getElementById('play-btn');
+var dotsEl        = document.getElementById('track-dots');
 
-var tracks  = [];
-var idx     = 0;
-var playing = false;
-var player  = document.getElementById('player');
-var card    = document.getElementById('card');
-var record  = document.getElementById('record');
-var sleeveImg = document.getElementById('sleeve-img');
-var sleevePlaceholder = document.getElementById('sleeve-placeholder');
-var trackTitleEl = document.getElementById('track-title');
-var playBtn  = document.getElementById('play-btn');
-var dotsEl   = document.getElementById('track-dots');
-
-// per-track tilt angles — cycles through for variety
 var tilts = [
-  'rotate(-3deg)',
-  'rotate(2deg)',
-  'rotate(-5deg)',
-  'rotate(4deg)',
-  'rotate(-2deg)',
-  'rotate(5deg)',
-  'rotate(-4deg)',
-  'rotate(3deg)',
-  'rotate(-1deg)',
-  'rotate(6deg)',
-  'rotate(-3deg)'
+  'rotate(-3deg)', 'rotate(2deg)',  'rotate(-5deg)',
+  'rotate(4deg)',  'rotate(-2deg)', 'rotate(5deg)',
+  'rotate(-4deg)', 'rotate(3deg)',  'rotate(-1deg)',
+  'rotate(6deg)',  'rotate(-3deg)'
 ];
 
 // ── card sizing ───────────────────────────────────────────────────────────────
@@ -384,84 +348,59 @@ function sizeCard() {
   var w = stage.clientWidth  - 48;
   var h = stage.clientHeight - 16;
   var size = Math.min(w, h, 340);
-  card.style.setProperty('--card-size', size + 'px');
   card.style.width  = size + 'px';
   card.style.height = size + 'px';
 }
-
 window.addEventListener('resize', sizeCard);
 sizeCard();
 
 // ── record spin ───────────────────────────────────────────────────────────────
 
 var spinAngle = 0;
-var spinSpeed = 0;         // deg per frame
-var targetSpeed = 0.4;     // deg per frame when playing (~24rpm)
-var slowTimer = null;
-var spinRAF = null;
-var lastTimestamp = null;
+var spinSpeed = 0;
+var spinRAF   = null;
+var lastTS    = null;
 
 function spinLoop(ts) {
-  if (lastTimestamp === null) lastTimestamp = ts;
-  var dt = Math.min(ts - lastTimestamp, 64); // cap at ~2 frames
-  lastTimestamp = ts;
-
+  if (!lastTS) lastTS = ts;
+  var dt = Math.min(ts - lastTS, 64);
+  lastTS = ts;
   spinAngle = (spinAngle + spinSpeed * (dt / 16.67)) % 360;
   record.style.transform = 'rotate(' + spinAngle + 'deg)';
-
-  if (spinSpeed > 0.005) {
+  if (spinSpeed > 0.004) {
     spinRAF = requestAnimationFrame(spinLoop);
   } else {
-    spinSpeed = 0;
-    spinRAF = null;
-    lastTimestamp = null;
+    spinSpeed = 0; spinRAF = null; lastTS = null;
   }
 }
 
 function startSpin() {
-  targetSpeed = 0.4;
-  spinSpeed = spinSpeed || 0.05;
-  if (!spinRAF) {
-    lastTimestamp = null;
-    spinRAF = requestAnimationFrame(spinLoop);
-  }
-  // accelerate to target speed
-  function accel() {
-    if (spinSpeed < targetSpeed) {
-      spinSpeed = Math.min(spinSpeed * 1.08 + 0.005, targetSpeed);
-      setTimeout(accel, 16);
-    }
-  }
-  accel();
+  if (!spinRAF) { lastTS = null; spinRAF = requestAnimationFrame(spinLoop); }
+  (function accel() {
+    if (spinSpeed < 0.45) { spinSpeed = Math.min(spinSpeed * 1.09 + 0.004, 0.45); setTimeout(accel, 16); }
+  })();
 }
 
 function stopSpin() {
-  // decelerate gradually
-  function decel() {
-    if (spinSpeed > 0.005) {
-      spinSpeed *= 0.96;
-      setTimeout(decel, 16);
-    } else {
-      spinSpeed = 0;
-    }
-  }
-  decel();
+  (function decel() {
+    if (spinSpeed > 0.004) { spinSpeed *= 0.96; setTimeout(decel, 16); }
+    else spinSpeed = 0;
+  })();
 }
 
-// ── marquee title ─────────────────────────────────────────────────────────────
+// ── marquee ───────────────────────────────────────────────────────────────────
 
 function updateMarquee() {
   var wrap = document.getElementById('title-wrap');
   var el   = trackTitleEl;
   el.style.animation = 'none';
-  el.style.transform = 'translateX(0)';
-  // measure after paint
+  el.style.transform  = 'translateX(0)';
   requestAnimationFrame(function() {
-    var overflow = el.scrollWidth - wrap.clientWidth + 16;
-    if (overflow > 10) {
-      var duration = Math.max(4, overflow / 40); // ~40px/s
-      el.style.setProperty('--marquee-dist', '-' + overflow + 'px');
-      el.style.animation = 'marquee ' + duration + 's ease-in-out ' + '1.5s infinite alternate';
+    var overflow = el.scrollWidth - (wrap.clientWidth - 16);
+    if (overflow > 8) {
+      var dur = Math.max(4, overflow / 38);
+      el.style.setProperty('--mdist', '-' + overflow + 'px');
+      el.style.animation = 'marquee ' + dur + 's ease-in-out 1.2s infinite alternate';
     }
   });
 }
@@ -484,26 +423,28 @@ function updateDots() {
   });
 }
 
-// ── show track ────────────────────────────────────────────────────────────────
-
-function applyTilt() {
-  var tilt = tilts[idx % tilts.length];
-  card.style.setProperty('--tilt', tilt);
-  card.style.transform = tilt;
-}
+// ── sleeve image ──────────────────────────────────────────────────────────────
 
 function setSleeveImage(src) {
   if (src) {
     sleeveImg.src = src;
     sleeveImg.style.display = 'block';
-    sleevePlaceholder.style.display = 'none';
+    sleevePH.style.display = 'none';
   } else {
     sleeveImg.style.display = 'none';
-    sleevePlaceholder.style.display = 'flex';
+    sleevePH.style.display  = 'flex';
   }
 }
 
-function showTrack(i, direction) {
+// ── show track ────────────────────────────────────────────────────────────────
+
+function applyTilt() {
+  var t = tilts[idx % tilts.length];
+  card.style.setProperty('--tilt', t);
+  card.style.transform = t;
+}
+
+function showTrack(i, dir) {
   idx = ((i % tracks.length) + tracks.length) % tracks.length;
   var t = tracks[idx];
   trackTitleEl.textContent = t.title;
@@ -511,51 +452,45 @@ function showTrack(i, direction) {
   updateDots();
   updateMarquee();
 
-  if (direction) {
-    // 1. slide out
-    card.className = direction === 'next' ? 'swipe-out-left' : 'swipe-out-right';
-    // 2. while off-screen, swap image and wait for it to load
+  if (dir) {
+    // slide out
+    card.className = dir === 'next' ? 'out-left' : 'out-right';
     setTimeout(function() {
       applyTilt();
-      var newSrc = t.image || '';
-      if (newSrc) {
-        var preload = new Image();
-        preload.onload = function() {
-          setSleeveImage(newSrc);
-          card.className = direction === 'next' ? 'swipe-in-left' : 'swipe-in-right';
-          setTimeout(function() { card.className = ''; }, 300);
-        };
-        preload.onerror = function() {
-          setSleeveImage('');
-          card.className = direction === 'next' ? 'swipe-in-left' : 'swipe-in-right';
-          setTimeout(function() { card.className = ''; }, 300);
-        };
-        preload.src = newSrc;
+      // preload image before sliding in
+      if (t.image) {
+        var img = new Image();
+        img.onload  = slideIn;
+        img.onerror = slideIn;
+        img.src = t.image;
       } else {
-        setSleeveImage('');
-        card.className = direction === 'next' ? 'swipe-in-left' : 'swipe-in-right';
-        setTimeout(function() { card.className = ''; }, 300);
+        slideIn();
       }
-    }, 260);
+      function slideIn() {
+        setSleeveImage(t.image || '');
+        card.className = dir === 'next' ? 'in-left' : 'in-right';
+        setTimeout(function() { card.className = ''; }, 280);
+      }
+    }, 240);
   } else {
     card.className = '';
-    setSleeveImage(t.image);
+    setSleeveImage(t.image || '');
     applyTilt();
   }
 }
 
 // ── playback ──────────────────────────────────────────────────────────────────
 
-function setPlayBtn(isPlaying) {
-  playBtn.innerHTML = isPlaying ? '&#9646;&#9646;' : '&#9654;';
+function setPlayBtn(p) {
+  playBtn.innerHTML = p ? '&#9646;&#9646;' : '&#9654;';
 }
 
-function haptic(pattern) {
-  if (navigator.vibrate) navigator.vibrate(pattern);
+function haptic(ms) {
+  try { if (navigator.vibrate) navigator.vibrate(ms); } catch(e) {}
 }
 
-function playTrack(i, direction) {
-  showTrack(i, direction);
+function playTrack(i, dir) {
+  showTrack(i, dir);
   playing = true;
   setPlayBtn(true);
   startSpin();
@@ -570,45 +505,31 @@ player.addEventListener('ended', function() {
   if (playing) playTrack(idx + 1, 'next');
 });
 
-player.addEventListener('pause', function() {
-  if (!playing) stopSpin();
-});
-
 // ── buttons ───────────────────────────────────────────────────────────────────
 
 function flash(id) {
   var el = document.getElementById(id);
   el.classList.add('active');
-  setTimeout(function() { el.classList.remove('active'); }, 200);
+  setTimeout(function() { el.classList.remove('active'); }, 180);
 }
 
 document.getElementById('prev-btn').addEventListener('click', function() {
-  flash('prev-btn');
-  haptic(30);
-  if (player.currentTime > 3) {
-    player.currentTime = 0;
-    if (playing) player.play();
-  } else {
-    playTrack(idx - 1, 'prev');
-  }
+  flash('prev-btn'); haptic(30);
+  if (player.currentTime > 3) { player.currentTime = 0; if (playing) player.play(); }
+  else playTrack(idx - 1, 'prev');
 });
 
 playBtn.addEventListener('click', function() {
-  flash('play-btn');
-  haptic(40);
+  flash('play-btn'); haptic(40);
   if (playing) {
-    playing = false;
-    player.pause();
-    setPlayBtn(false);
-    stopSpin();
+    playing = false; player.pause(); setPlayBtn(false); stopSpin();
   } else {
     playTrack(idx, null);
   }
 });
 
 document.getElementById('next-btn').addEventListener('click', function() {
-  flash('next-btn');
-  haptic(30);
+  flash('next-btn'); haptic(30);
   playTrack(idx + 1, 'next');
 });
 
@@ -616,55 +537,49 @@ document.getElementById('next-btn').addEventListener('click', function() {
 
 var fsBtn = document.getElementById('fullscreen-btn');
 
-function updateFsBtn() {
-  fsBtn.innerHTML = document.fullscreenElement ? '&#x2715;' : '&#x26F6;';
-}
-
 fsBtn.addEventListener('click', function() {
+  var el = document.documentElement;
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(function() {});
+    (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen).call(el);
   } else {
-    document.exitFullscreen().catch(function() {});
+    (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen).call(document);
   }
 });
 
-document.addEventListener('fullscreenchange', updateFsBtn);
+function onFSChange() {
+  fsBtn.innerHTML = (document.fullscreenElement || document.webkitFullscreenElement) ? '&#x2715;' : '&#x26F6;';
+}
+document.addEventListener('fullscreenchange',       onFSChange);
+document.addEventListener('webkitfullscreenchange', onFSChange);
+document.addEventListener('mozfullscreenchange',    onFSChange);
 
 // ── swipe ─────────────────────────────────────────────────────────────────────
 
-var swipeStartX = 0;
-var swipeStartY = 0;
-var swipeActive = false;
+var sx = 0, sy = 0, sActive = false;
 
 document.addEventListener('touchstart', function(e) {
-  swipeStartX = e.touches[0].clientX;
-  swipeStartY = e.touches[0].clientY;
-  swipeActive = true;
+  sx = e.touches[0].clientX;
+  sy = e.touches[0].clientY;
+  sActive = true;
 }, { passive: true });
 
 document.addEventListener('touchmove', function(e) {
-  if (!swipeActive) return;
-  var dx = e.touches[0].clientX - swipeStartX;
-  var dy = e.touches[0].clientY - swipeStartY;
-  if (Math.abs(dy) > Math.abs(dx)) swipeActive = false;
+  if (!sActive) return;
+  if (Math.abs(e.touches[0].clientY - sy) > Math.abs(e.touches[0].clientX - sx)) sActive = false;
 }, { passive: true });
 
 document.addEventListener('touchend', function(e) {
-  if (!swipeActive) return;
-  swipeActive = false;
-  var dx = e.changedTouches[0].clientX - swipeStartX;
-  var dy = e.changedTouches[0].clientY - swipeStartY;
-  if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+  if (!sActive) return;
+  sActive = false;
+  var dx = e.changedTouches[0].clientX - sx;
+  var dy = e.changedTouches[0].clientY - sy;
+  if (Math.abs(dx) < 48 || Math.abs(dy) > Math.abs(dx)) return;
   haptic(20);
   if (dx < 0) {
     playTrack(idx + 1, 'next');
   } else {
-    if (player.currentTime > 3) {
-      player.currentTime = 0;
-      if (playing) player.play();
-    } else {
-      playTrack(idx - 1, 'prev');
-    }
+    if (player.currentTime > 3) { player.currentTime = 0; if (playing) player.play(); }
+    else playTrack(idx - 1, 'prev');
   }
 }, { passive: true });
 
@@ -675,10 +590,7 @@ xhr.open('GET', 'tracks.json?v=' + Date.now(), true);
 xhr.onload = function() {
   if (xhr.status === 200) {
     try { tracks = JSON.parse(xhr.responseText); } catch(e) {}
-    if (tracks.length) {
-      buildDots();
-      showTrack(0, null);
-    }
+    if (tracks.length) { buildDots(); showTrack(0, null); }
   }
 };
 xhr.send();
@@ -686,7 +598,7 @@ xhr.send();
 // ── service worker ────────────────────────────────────────────────────────────
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+  navigator.serviceWorker.register('sw.js').catch(function() {});
 }
 </script>
 </body>
