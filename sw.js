@@ -1,33 +1,34 @@
-// Service Worker - sw.js
+const CACHE = 'whakatu-v1';
+const STATIC = ['/', '/index.html', '/manifest.json', '/logo.png'];
 
-const CACHE_NAME = 'whakatu-charts-cache-v1';
-const NETWORK_FIRST_URL = 'tracks.json';
-const CACHE_FIRST_URLS = ['/audio/', '/images/'];
-
-self.addEventListener('fetch', event => {
-    const requestUrl = new URL(event.request.url);
-
-    if (requestUrl.pathname === NETWORK_FIRST_URL) {
-        event.respondWith(networkFirst(event));
-    } else if (CACHE_FIRST_URLS.some(url => requestUrl.pathname.indexOf(url) === 0)) {
-        event.respondWith(cacheFirst(event));
-    }
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)));
+  self.skipWaiting();
 });
 
-async function networkFirst(event) {
-    try {
-        const response = await fetch(event.request);
-        return response;
-    } catch (error) {
-        return caches.match(event.request);
-    }
-}
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
 
-async function cacheFirst(event) {
-    const cache = await caches.open(CACHE_NAME);
-    const cachedResponse = await cache.match(event.request);
-    if (cachedResponse) {
-        return cachedResponse;
-    }
-    return fetch(event.request);
-}
+self.addEventListener('fetch', e => {
+  // Network-first for tracks.json so new tracks appear after push
+  if (e.request.url.includes('tracks.json')) {
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match(e.request))
+    );
+    return;
+  }
+  // Cache-first for everything else
+  e.respondWith(
+    caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
+      const clone = res.clone();
+      caches.open(CACHE).then(c => c.put(e.request, clone));
+      return res;
+    }))
+  );
+});
