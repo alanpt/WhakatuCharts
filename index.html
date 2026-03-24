@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
 <title>Whakatu Listening Station</title>
 <style>
 * {
-  -webkit-box-sizing: border-box;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -27,18 +27,9 @@ html, body {
   left: 0;
   right: 0;
   bottom: 15%;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
   justify-content: center;
   padding: 16px 16px 8px;
 }
@@ -46,12 +37,11 @@ html, body {
 #header {
   text-align: center;
   margin-bottom: 12px;
-  -ms-flex-negative: 0;
   flex-shrink: 0;
 }
 
 #station-name {
-  font-family: Courier New, serif;
+  font-family: 'Courier New', monospace;
   font-size: 23px;
   color: white;
   letter-spacing: 2px;
@@ -67,18 +57,10 @@ html, body {
 }
 
 #artwork-wrap {
-  -webkit-box-flex: 1;
-  -ms-flex: 1;
   flex: 1;
   width: 100%;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
   justify-content: center;
   min-height: 0;
 }
@@ -92,7 +74,6 @@ html, body {
   background: #111;
 }
 
-/* Controls bar */
 #controls-bar {
   position: absolute;
   left: 0;
@@ -101,15 +82,8 @@ html, body {
   height: 15%;
   background: #111;
   border-top: 1px solid #2a2a2a;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
   justify-content: center;
   padding: 6px 12px;
 }
@@ -128,16 +102,11 @@ html, body {
 }
 
 #controls-row {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 
 #logo-wrap {
-  -ms-flex-negative: 0;
   flex-shrink: 0;
   margin-right: 12px;
 }
@@ -149,32 +118,24 @@ html, body {
 }
 
 #buttons {
-  -webkit-box-flex: 1;
-  -ms-flex: 1;
   flex: 1;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
   justify-content: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 
 #status-wrap {
-  -ms-flex-negative: 0;
   flex-shrink: 0;
   width: 44px;
   text-align: right;
 }
 
-#status {
+#version {
   font-family: Arial, sans-serif;
-  font-size: 10px;
-  color: #6b6560;
-  line-height: 1.3;
+  font-size: 9px;
+  color: #222;
+  margin-top: 3px;
+  letter-spacing: 1px;
 }
 
 .ctrl-btn {
@@ -189,11 +150,8 @@ html, body {
   text-align: center;
   margin: 0 8px;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .ctrl-btn.active {
@@ -208,7 +166,6 @@ html, body {
   <div id="header">
     <div id="station-name">Whakatū Hits Listening Station</div>
     <div id="month-label"></div>
-    <div style="font-family:Arial,sans-serif;font-size:10px;color:#333;margin-top:4px;letter-spacing:1px;">v1.5</div>
   </div>
   <div id="artwork-wrap">
     <img id="artwork" src="" alt="">
@@ -227,90 +184,37 @@ html, body {
       <div class="ctrl-btn" id="next-btn">&#9654;&#9654;</div>
     </div>
     <div id="status-wrap">
-      <span id="status"> </span>
-      <a href="test.html" style="display:block;font-family:Arial,sans-serif;font-size:9px;color:#333;text-decoration:none;margin-top:3px;letter-spacing:1px;">diag</a>
+      <div id="version">v2.0</div>
     </div>
   </div>
 </div>
 
-<audio id="player"></audio>
-<div id="native-fallback" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#111;border-top:1px solid #2a2a2a;padding:8px 12px;z-index:999;">
-  <div style="font-family:Arial,sans-serif;font-size:10px;color:#6b6560;margin-bottom:4px;text-align:center;letter-spacing:1px;">NATIVE PLAYER</div>
-  <audio id="native-player" controls style="width:100%;height:36px;"></audio>
-  <div id="native-title" style="font-family:Arial,sans-serif;font-size:11px;color:#aaa;text-align:center;margin-top:4px;"></div>
-</div>
+<audio id="player" preload="none"></audio>
 
 <script>
 var months = ['January','February','March','April','May','June',
   'July','August','September','October','November','December'];
-document.getElementById('month-label').innerHTML =
+document.getElementById('month-label').textContent =
   'Hits of ' + months[new Date().getMonth()];
 
 var tracks = [];
 var idx = 0;
 var playing = false;
-var silenceTimer = null;
-var fallbackShown = false;
 var player = document.getElementById('player');
 var artwork = document.getElementById('artwork');
 var trackTitle = document.getElementById('track-title');
-var status = document.getElementById('status');
 var playBtn = document.getElementById('play-btn');
-var nativeFallback = document.getElementById('native-fallback');
-var nativePlayer = document.getElementById('native-player');
-var nativeTitle = document.getElementById('native-title');
 
 function setPlayBtn(isPlaying) {
   playBtn.innerHTML = isPlaying ? '&#9646;&#9646;' : '&#9654;';
 }
 
-function showNativeFallback() {
-  if (fallbackShown) return;
-  fallbackShown = true;
-  var t = tracks[idx];
-  nativePlayer.src = t.audio;
-  nativeTitle.innerHTML = t.title;
-  nativeFallback.style.display = 'block';
-  // shrink art area to make room
-  document.getElementById('art-area').style.bottom = '30%';
-  document.getElementById('controls-bar').style.bottom = '15%';
-}
-
-function loadTracks() {
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', 'tracks.json?v=' + new Date().getTime(), true);
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          tracks = JSON.parse(xhr.responseText);
-        } catch(e) {
-          tracks = [];
-        }
-        if (tracks.length > 0) {
-          status.innerHTML = '';
-          showTrack(0);
-        } else {
-          status.innerHTML = 'No tracks';
-        }
-      } else {
-        status.innerHTML = 'Error ' + xhr.status;
-      }
-    }
-  };
-  xhr.send();
-}
-
 function showTrack(i) {
   idx = ((i % tracks.length) + tracks.length) % tracks.length;
   var t = tracks[idx];
-  trackTitle.innerHTML = t.title;
-  if (t.image) {
-    artwork.src = t.image;
-    artwork.style.display = 'block';
-  } else {
-    artwork.style.display = 'none';
-  }
+  trackTitle.textContent = t.title;
+  artwork.src = t.image || '';
+  artwork.style.display = t.image ? 'block' : 'none';
   player.src = t.audio;
 }
 
@@ -318,53 +222,24 @@ function playTrack(i) {
   showTrack(i);
   playing = true;
   setPlayBtn(true);
-  if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
-  player.load();
-  try {
-    var p = player.play();
-    if (p !== undefined && typeof p.then === 'function') {
-      p.then(function() {
-        status.innerHTML = '';
-        // After 2s, check if audio is actually progressing
-        silenceTimer = setTimeout(function() {
-          if (player.currentTime === 0 && playing) {
-            showNativeFallback();
-          }
-        }, 2000);
-      }).catch(function() {
-        playing = false;
-        setPlayBtn(false);
-        showNativeFallback();
-      });
-    } else {
-      // iOS 9 — no Promise, check after 2s if anything is happening
-      silenceTimer = setTimeout(function() {
-        if (player.currentTime === 0 && playing) {
-          showNativeFallback();
-        }
-      }, 2000);
-    }
-  } catch(e) {
+  player.play().catch(function() {
     playing = false;
     setPlayBtn(false);
-    showNativeFallback();
-  }
+  });
 }
 
 player.addEventListener('ended', function() {
-  if (playing) {
-    playTrack(idx + 1);
-  }
+  if (playing) playTrack(idx + 1);
 });
 
-function flashBtn(id) {
+function flash(id) {
   var el = document.getElementById(id);
-  el.className = 'ctrl-btn active';
-  setTimeout(function() { el.className = 'ctrl-btn'; }, 200);
+  el.classList.add('active');
+  setTimeout(function() { el.classList.remove('active'); }, 200);
 }
 
 document.getElementById('prev-btn').addEventListener('click', function() {
-  flashBtn('prev-btn');
+  flash('prev-btn');
   if (player.currentTime > 3) {
     player.currentTime = 0;
     if (playing) player.play();
@@ -374,7 +249,7 @@ document.getElementById('prev-btn').addEventListener('click', function() {
 });
 
 playBtn.addEventListener('click', function() {
-  flashBtn('play-btn');
+  flash('play-btn');
   if (playing) {
     playing = false;
     player.pause();
@@ -385,21 +260,25 @@ playBtn.addEventListener('click', function() {
 });
 
 document.getElementById('next-btn').addEventListener('click', function() {
-  flashBtn('next-btn');
+  flash('next-btn');
   playTrack(idx + 1);
 });
 
-loadTracks();
-
-try {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-      for (var i = 0; i < registrations.length; i++) {
-        registrations[i].unregister();
-      }
-    });
+// Load tracks
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'tracks.json?v=' + Date.now(), true);
+xhr.onload = function() {
+  if (xhr.status === 200) {
+    try { tracks = JSON.parse(xhr.responseText); } catch(e) {}
+    if (tracks.length) showTrack(0);
   }
-} catch(e) {}
+};
+xhr.send();
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
 </script>
 </body>
 </html>

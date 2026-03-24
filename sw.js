@@ -1,5 +1,5 @@
-var CACHE = 'whakatu-v3';
-var STATIC = ['/', '/index.html', '/manifest.json', '/logo.png'];
+const CACHE = 'whakatu-v4';
+const STATIC = ['./', 'index.html', 'manifest.json', 'logo.png', 'tracks.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)));
@@ -16,19 +16,26 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Network-first for tracks.json so new tracks appear after push
+  // Always network-first for tracks.json so new tracks appear after push
   if (e.request.url.includes('tracks.json')) {
     e.respondWith(
       fetch(e.request).catch(() => caches.match(e.request))
     );
     return;
   }
-  // Cache-first for everything else
+  // Network-first for audio files — don't cache large MP3s
+  if (e.request.url.includes('/tracks/')) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
+  // Cache-first for everything else (html, css, images, logo)
   e.respondWith(
-    caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-      const clone = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, clone));
-      return res;
-    }))
+    caches.match(e.request).then(hit =>
+      hit || fetch(e.request).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+        return res;
+      })
+    )
   );
 });
