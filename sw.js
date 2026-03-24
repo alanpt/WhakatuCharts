@@ -1,12 +1,42 @@
-// Check for substrings for iOS 9 compatibility using ES5-compatible methods
-var someString = 'Hello World';
+self.addEventListener('fetch', function(event) {
+    if (event.request.destination === 'document') {
+        event.respondWith(fetch(event.request).catch(function() {
+            return caches.match(event.request);
+        }));
+    } else if (event.request.destination === 'audio' || event.request.destination === 'image') {
+        event.respondWith(fetch(event.request).then(function(response) {
+            let responseToCache = response.clone();
+            caches.open('track-cache').then(function(cache) {
+                cache.put(event.request, responseToCache);
+            });
+            return response;
+        }).catch(function() {
+            return caches.match(event.request);
+        }));
+    }
+});
 
-// Replacing .includes() with .indexOf()
-if (someString.indexOf('World') !== -1) {
-    console.log('Found World');
-}
+self.addEventListener('install', function(event) {
+    event.waitUntil(
+        caches.open('track-cache').then(function(cache) {
+            return cache.addAll([
+                'tracks.json',
+                'index.html'
+            ]);
+        })
+    );
+});
 
-// Replacing .endsWith() with .substring() method
-if (someString.substring(someString.length - 5) === 'World') {
-    console.log('String ends with World');
-}
+self.addEventListener('activate', function(event) {
+    event.waitUntil(
+        caches.keys().then(function(cacheNames) {
+            return Promise.all(
+                cacheNames.map(function(cacheName) {
+                    if (cacheName !== 'track-cache') {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
+});
