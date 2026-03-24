@@ -1,58 +1,12 @@
-const CACHE = 'whakatu-v2'; // bump this whenever you push changes
-const STATIC = ['/', '/index.html', '/manifest.json', '/logo.png'];
+// Check for substrings for iOS 9 compatibility using ES5-compatible methods
+var someString = 'Hello World';
 
-self.addEventListener('install', function(e) {
-  e.waitUntil(
-    caches.open(CACHE).then(function(cache) {
-      return cache.addAll(STATIC);
-    })
-  );
-});
+// Replacing .includes() with .indexOf()
+if (someString.indexOf('World') !== -1) {
+    console.log('Found World');
+}
 
-self.addEventListener('activate', function(e) {
-  e.waitUntil(
-    caches.keys().then(function(keyList) {
-      return Promise.all(
-        keyList.map(function(key) {
-          if (key !== CACHE) {
-            return caches.delete(key);
-          }
-        })
-      );
-    })
-  );
-});
-
-self.addEventListener('fetch', function(e) {
-  // Network-first for tracks.json AND index.html
-  if (e.request.url.includes('tracks.json') || 
-      e.request.url.endsWith('/') || 
-      e.request.url.includes('index.html')) {
-    e.respondWith(
-      fetch(e.request)
-        .then(function(res) {
-          var clone = res.clone();
-          caches.open(CACHE).then(function(cache) {
-            cache.put(e.request, clone);
-          });
-          return res;
-        })
-        .catch(function() {
-          return caches.match(e.request);
-        })
-    );
-    return;
-  }
-  // Cache-first for everything else (audio, images, logo)
-  e.respondWith(
-    caches.match(e.request).then(function(hit) {
-      return hit || fetch(e.request).then(function(res) {
-        var clone = res.clone();
-        caches.open(CACHE).then(function(cache) {
-          cache.put(e.request, clone);
-        });
-        return res;
-      });
-    })
-  );
-});
+// Replacing .endsWith() with .substring() method
+if (someString.substring(someString.length - 5) === 'World') {
+    console.log('String ends with World');
+}
