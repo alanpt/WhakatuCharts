@@ -18,21 +18,26 @@ h1 { font-family: 'Courier New', serif; font-size: 18px; color: white; margin-bo
 .badge.warn { background: #3a2a00; color: #ff9800; }
 .badge.info { background: #1a2a3a; color: #64b5f6; }
 .badge.running { background: #2a2a2a; color: #999; }
-.test-info { flex: 1; }
+.test-info { flex: 1; min-width: 0; }
 .test-name { font-size: 13px; color: #f0ece4; margin-bottom: 2px; }
-.test-detail { font-size: 11px; color: #6b6560; line-height: 1.5; }
+.test-detail { font-size: 11px; color: #6b6560; line-height: 1.5; word-break: break-all; }
 .test-detail.error { color: #f44336; }
+.test-detail.good { color: #4caf50; }
 button { background: #2a2a2a; border: 2px solid #666; color: #f0ece4; border-radius: 8px; padding: 10px 20px; font-size: 14px; cursor: pointer; margin: 4px 4px 4px 0; -webkit-tap-highlight-color: transparent; }
 button:active { background: #3a3a3a; border-color: #c8a96e; }
+a { color: #c8a96e; }
 .back-link { display: inline-block; margin-bottom: 20px; color: #6b6560; text-decoration: none; font-size: 12px; letter-spacing: 1px; }
 .back-link:before { content: '← '; }
-#audio-test-area { margin-top: 8px; }
-.track-test { padding: 6px 0; border-bottom: 1px solid #1a1a1a; font-size: 11px; display: flex; gap: 8px; align-items: center; }
-.track-test .tbadge { flex-shrink: 0; width: 48px; font-size: 10px; font-weight: bold; text-align: center; padding: 2px 4px; border-radius: 3px; }
-.track-test .tbadge.pass { background: #1a3a1a; color: #4caf50; }
-.track-test .tbadge.fail { background: #3a1a1a; color: #f44336; }
-.track-test .tbadge.running { background: #2a2a2a; color: #999; }
-.track-test .tname { flex: 1; color: #aaa; }
+.track-row { padding: 10px 0; border-bottom: 1px solid #1a1a1a; }
+.track-row .track-name { font-size: 12px; color: #f0ece4; margin-bottom: 6px; }
+.track-row .track-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.track-row .track-status { font-size: 11px; color: #6b6560; line-height: 1.6; }
+.mini-btn { background: #1a1a1a; border: 1px solid #444; color: #aaa; border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer; text-decoration: none; display: inline-block; -webkit-tap-highlight-color: transparent; }
+.mini-btn:active { border-color: #c8a96e; color: #c8a96e; }
+.header-dump { font-size: 10px; color: #555; font-family: 'Courier New', monospace; margin-top: 4px; line-height: 1.6; word-break: break-all; }
+.header-dump .hl { color: #ff9800; }
+.header-dump .hlg { color: #4caf50; }
+.header-dump .hlr { color: #f44336; }
 </style>
 </head>
 <body>
@@ -40,7 +45,7 @@ button:active { background: #3a3a3a; border-color: #c8a96e; }
 <a class="back-link" href="index.html">Back to player</a>
 
 <h1>Diagnostics</h1>
-<p class="subtitle">Whakatū Listening Station — tap "Run Tests" to begin</p>
+<p class="subtitle">Whakatū Listening Station</p>
 
 <div class="section">
   <h2>Environment</h2>
@@ -48,311 +53,370 @@ button:active { background: #3a3a3a; border-color: #c8a96e; }
 </div>
 
 <div class="section">
-  <h2>Audio Support</h2>
+  <h2>Audio Format Support</h2>
   <div id="audio-results"></div>
 </div>
 
 <div class="section">
-  <h2>Network &amp; Data</h2>
-  <div id="network-results"></div>
+  <h2>Server Headers &amp; Byte-Range Test</h2>
+  <p style="font-size:11px;color:#6b6560;margin-bottom:8px;">iOS Safari requires servers to support byte-range (partial content) requests to stream audio. Tests the first MP3 for correct headers.</p>
+  <div id="header-results"></div>
 </div>
 
 <div class="section">
-  <h2>Track Files</h2>
-  <p style="font-size:11px;color:#6b6560;margin-bottom:8px;">Checks each track can be fetched. Does not test audio playback — use the button below.</p>
-  <div id="track-results"></div>
+  <h2>Direct Playback Test</h2>
+  <p style="font-size:11px;color:#6b6560;margin-bottom:8px;">Tap a play button to attempt native browser audio on that file. This is the most direct test possible.</p>
+  <div id="track-list"></div>
 </div>
 
 <div class="section">
-  <h2>Audio Playback Test</h2>
-  <p style="font-size:11px;color:#6b6560;margin-bottom:8px;">Tap the button below to attempt playing the first track. iOS requires a direct tap to allow audio.</p>
-  <div id="audio-test-area">
-    <button id="play-test-btn">▶ Tap to test audio playback</button>
-    <div id="play-test-result" style="margin-top:8px;font-size:12px;color:#6b6560;"></div>
+  <h2>External Audio Test</h2>
+  <p style="font-size:11px;color:#6b6560;margin-bottom:8px;">Tests a known-working MP3 from a different server. If this plays but your tracks don't, the issue is GitHub Pages serving. If this also fails, the issue is the iPad itself.</p>
+  <div id="external-test">
+    <button id="ext-play-btn">▶ Play external test MP3</button>
+    <div id="ext-result" style="margin-top:8px;font-size:12px;color:#6b6560;"></div>
+    <audio id="ext-player" preload="none"></audio>
   </div>
 </div>
 
-<div style="margin-top: 8px; margin-bottom: 24px;">
-  <button id="run-btn">Run Tests</button>
+<div style="margin-top:8px;margin-bottom:24px;">
+  <button id="run-btn">Run All Tests</button>
 </div>
 
-<audio id="test-player" preload="none"></audio>
-
 <script>
-var testPlayer = document.getElementById('test-player');
-var firstTrackAudio = null;
+var tracks = [];
 
-function makeTest(name, badge, detail, isError) {
-  var div = document.createElement('div');
-  div.className = 'test';
-  var b = document.createElement('div');
-  b.className = 'badge ' + badge;
-  b.textContent = badge === 'pass' ? 'PASS' : badge === 'fail' ? 'FAIL' : badge === 'warn' ? 'WARN' : badge === 'info' ? 'INFO' : '...';
-  var info = document.createElement('div');
-  info.className = 'test-info';
-  var n = document.createElement('div');
-  n.className = 'test-name';
-  n.textContent = name;
-  var d = document.createElement('div');
-  d.className = 'test-detail' + (isError ? ' error' : '');
-  d.textContent = detail;
-  info.appendChild(n);
-  info.appendChild(d);
-  div.appendChild(b);
-  div.appendChild(info);
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+function el(tag, props, text) {
+  var e = document.createElement(tag);
+  if (props) { for (var k in props) { if (k === 'className') e.className = props[k]; else e.setAttribute(k, props[k]); } }
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function makeTest(name, badge, detail, detailClass) {
+  var div = el('div', {className: 'test'});
+  var b = el('div', {className: 'badge ' + badge});
+  b.textContent = {pass:'PASS',fail:'FAIL',warn:'WARN',info:'INFO',running:'...'}[badge] || badge;
+  var info = el('div', {className: 'test-info'});
+  var n = el('div', {className: 'test-name'}, name);
+  var d = el('div', {className: 'test-detail' + (detailClass ? ' ' + detailClass : '')}, detail);
+  info.appendChild(n); info.appendChild(d);
+  div.appendChild(b); div.appendChild(info);
   return div;
 }
 
+// ── environment ───────────────────────────────────────────────────────────────
+
 function runEnvTests() {
-  var el = document.getElementById('env-results');
-  el.innerHTML = '';
+  var el2 = document.getElementById('env-results');
+  el2.innerHTML = '';
+  el2.appendChild(makeTest('User Agent', 'info', navigator.userAgent));
 
-  // User agent
-  el.appendChild(makeTest('User Agent', 'info', navigator.userAgent));
-
-  // iOS version detection
   var ua = navigator.userAgent;
   var iosMatch = ua.match(/OS (\d+)_(\d+)/);
   if (iosMatch) {
     var major = parseInt(iosMatch[1]);
     var badge = major >= 13 ? 'pass' : major >= 10 ? 'warn' : 'fail';
-    var note = major >= 13 ? '' : major >= 10 ? ' — limited autoplay support' : ' — very limited audio support. Check mute switch and volume!';
-    el.appendChild(makeTest('iOS Version', badge, 'iOS ' + major + '.' + iosMatch[2] + note));
+    var note = major >= 13 ? '' : major >= 10 ? ' — limited autoplay support' : ' — very limited audio support (iOS 9 known issue)';
+    el2.appendChild(makeTest('iOS Version', badge, 'iOS ' + major + '.' + iosMatch[2] + note));
   } else {
-    el.appendChild(makeTest('iOS Version', 'info', 'Not iOS (or version not detected)'));
+    el2.appendChild(makeTest('iOS Version', 'info', 'Not iOS or version not detected'));
   }
 
-  // Service Worker support
-  if ('serviceWorker' in navigator) {
-    el.appendChild(makeTest('Service Worker', 'pass', 'Supported'));
-  } else {
-    el.appendChild(makeTest('Service Worker', 'warn', 'Not supported — offline mode unavailable but player will still work'));
-  }
+  el2.appendChild(makeTest('Protocol', location.protocol === 'https:' ? 'pass' : 'warn',
+    location.protocol + '//' + location.host + location.pathname));
 
-  // XHR support
-  try {
-    var x = new XMLHttpRequest();
-    el.appendChild(makeTest('XMLHttpRequest', 'pass', 'Available'));
-  } catch(e) {
-    el.appendChild(makeTest('XMLHttpRequest', 'fail', 'Not available: ' + e.message));
-  }
-
-  // localStorage
-  try {
-    localStorage.setItem('_test', '1');
-    localStorage.removeItem('_test');
-    el.appendChild(makeTest('localStorage', 'pass', 'Available'));
-  } catch(e) {
-    el.appendChild(makeTest('localStorage', 'warn', 'Blocked (private browsing?) — not required'));
-  }
+  el2.appendChild(makeTest('Service Worker', 'serviceWorker' in navigator ? 'pass' : 'warn',
+    'serviceWorker' in navigator ? 'Supported' : 'Not supported'));
 }
+
+// ── audio format ──────────────────────────────────────────────────────────────
 
 function runAudioTests() {
-  var el = document.getElementById('audio-results');
-  el.innerHTML = '';
+  var el2 = document.getElementById('audio-results');
+  el2.innerHTML = '';
+  var a = document.createElement('audio');
 
-  var audio = document.createElement('audio');
+  var mp3 = a.canPlayType('audio/mpeg');
+  el2.appendChild(makeTest('MP3 (audio/mpeg)', mp3 === 'probably' ? 'pass' : mp3 === 'maybe' ? 'warn' : 'fail',
+    mp3 || 'not supported'));
 
-  // MP3
-  var mp3 = audio.canPlayType('audio/mpeg');
-  el.appendChild(makeTest('MP3 (audio/mpeg)', mp3 === 'probably' ? 'pass' : mp3 === 'maybe' ? 'warn' : 'fail',
-    mp3 === 'probably' ? 'Fully supported' : mp3 === 'maybe' ? 'Possibly supported' : 'Not supported'));
+  var aac = a.canPlayType('audio/mp4; codecs="mp4a.40.2"');
+  el2.appendChild(makeTest('AAC / M4A', aac === 'probably' ? 'pass' : aac === 'maybe' ? 'warn' : 'fail',
+    aac || 'not supported'));
 
-  // M4A / AAC
-  var m4a = audio.canPlayType('audio/mp4; codecs="mp4a.40.2"');
-  el.appendChild(makeTest('M4A / AAC', m4a === 'probably' ? 'pass' : m4a === 'maybe' ? 'warn' : 'fail',
-    m4a === 'probably' ? 'Fully supported' : m4a === 'maybe' ? 'Possibly supported' : 'Not supported'));
-
-  // Autoplay policy
-  var tempAudio = document.createElement('audio');
-  tempAudio.src = 'data:audio/mpeg;base64,/+MYxAAAAANIAAAAAExBTUUzLjk4LjIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
-  var p = tempAudio.play();
-  if (p !== undefined && typeof p.then === 'function') {
-    p.then(function() {
-      el.appendChild(makeTest('Autoplay Policy', 'pass', 'Autoplay allowed without user gesture'));
-      tempAudio.pause();
-    }).catch(function(e) {
-      el.appendChild(makeTest('Autoplay Policy', 'warn', 'Blocked — user must tap Play first (normal on iOS)'));
-    });
-  } else {
-    el.appendChild(makeTest('Autoplay Policy', 'info', 'Could not determine (older browser)'));
-  }
+  var ogg = a.canPlayType('audio/ogg; codecs="vorbis"');
+  el2.appendChild(makeTest('OGG Vorbis', ogg === 'probably' ? 'pass' : ogg === 'maybe' ? 'warn' : 'fail',
+    ogg || 'not supported'));
 }
 
-function runNetworkTests() {
-  var el = document.getElementById('network-results');
-  el.innerHTML = '';
+// ── server headers ────────────────────────────────────────────────────────────
 
-  // Fetch tracks.json
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', 'tracks.json?v=' + new Date().getTime(), true);
-  var pending = makeTest('Load tracks.json', 'running', 'Fetching...');
-  el.appendChild(pending);
+function runHeaderTests(firstAudioUrl) {
+  var el2 = document.getElementById('header-results');
+  el2.innerHTML = '';
 
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          var data = JSON.parse(xhr.responseText);
-          pending.querySelector('.badge').className = 'badge pass';
-          pending.querySelector('.badge').textContent = 'PASS';
-          pending.querySelector('.test-detail').textContent = 'Loaded OK — ' + data.length + ' track(s) found';
-          runTrackTests(data);
-        } catch(e) {
-          pending.querySelector('.badge').className = 'badge fail';
-          pending.querySelector('.badge').textContent = 'FAIL';
-          pending.querySelector('.test-detail').textContent = 'JSON parse error: ' + e.message;
-          pending.querySelector('.test-detail').className = 'test-detail error';
-        }
-      } else {
-        pending.querySelector('.badge').className = 'badge fail';
-        pending.querySelector('.badge').textContent = 'FAIL';
-        pending.querySelector('.test-detail').textContent = 'HTTP ' + xhr.status + ' — could not load tracks.json';
-        pending.querySelector('.test-detail').className = 'test-detail error';
-      }
-    }
-  };
-  xhr.send();
-}
-
-function runTrackTests(tracks) {
-  var el = document.getElementById('track-results');
-  el.innerHTML = '';
-
-  if (!tracks || tracks.length === 0) {
-    el.appendChild(makeTest('Track files', 'fail', 'No tracks in tracks.json'));
+  if (!firstAudioUrl) {
+    el2.appendChild(makeTest('Headers', 'warn', 'No tracks loaded yet — run tests first'));
     return;
   }
 
-  // Store first track for playback test
-  if (tracks[0] && tracks[0].audio) {
-    firstTrackAudio = tracks[0].audio;
-  }
+  // Full request
+  var fullPending = makeTest('Full GET request', 'running', 'Checking…');
+  el2.appendChild(fullPending);
 
-  tracks.forEach(function(track, i) {
-    // Audio file
-    var audioRow = document.createElement('div');
-    audioRow.className = 'track-test';
-    var ab = document.createElement('div');
-    ab.className = 'tbadge running';
-    ab.textContent = '...';
-    var aname = document.createElement('div');
-    aname.className = 'tname';
-    aname.textContent = track.title + ' (audio)';
-    audioRow.appendChild(ab);
-    audioRow.appendChild(aname);
-    el.appendChild(audioRow);
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', firstAudioUrl, true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4) {
+      var status = xhr.status;
+      var ct = xhr.getResponseHeader('Content-Type') || '(none)';
+      var ar = xhr.getResponseHeader('Accept-Ranges') || '(none)';
+      var cl = xhr.getResponseHeader('Content-Length') || '(none)';
+      var cc = xhr.getResponseHeader('Cache-Control') || '(none)';
 
-    (function(badge, name, url) {
-      var x = new XMLHttpRequest();
-      x.open('HEAD', url + '?v=' + new Date().getTime(), true);
-      x.onreadystatechange = function() {
-        if (x.readyState === 4) {
-          if (x.status === 200 || x.status === 206) {
-            badge.className = 'tbadge pass';
-            badge.textContent = 'OK';
-          } else {
-            badge.className = 'tbadge fail';
-            badge.textContent = 'FAIL';
-            name.style.color = '#f44336';
-            name.textContent += ' — HTTP ' + x.status;
-          }
-        }
-      };
-      x.onerror = function() {
-        badge.className = 'tbadge fail';
-        badge.textContent = 'ERR';
-        name.style.color = '#f44336';
-        name.textContent += ' — network error';
-      };
-      x.send();
-    })(ab, aname, track.audio);
+      var ok = status === 200 || status === 206;
+      fullPending.querySelector('.badge').className = 'badge ' + (ok ? 'pass' : 'fail');
+      fullPending.querySelector('.badge').textContent = ok ? 'PASS' : 'FAIL';
 
-    // Image file
-    if (track.image) {
-      var imgRow = document.createElement('div');
-      imgRow.className = 'track-test';
-      var ib = document.createElement('div');
-      ib.className = 'tbadge running';
-      ib.textContent = '...';
-      var iname = document.createElement('div');
-      iname.className = 'tname';
-      iname.style.color = '#555';
-      iname.textContent = track.title + ' (image)';
-      imgRow.appendChild(ib);
-      imgRow.appendChild(iname);
-      el.appendChild(imgRow);
+      var dump = document.createElement('div');
+      dump.className = 'header-dump';
 
-      (function(badge, name, url) {
-        var img = new Image();
-        img.onload = function() {
-          badge.className = 'tbadge pass';
-          badge.textContent = 'OK';
-        };
-        img.onerror = function() {
-          badge.className = 'tbadge fail';
-          badge.textContent = 'FAIL';
-          name.style.color = '#f44336';
-          name.textContent += ' — failed to load';
-        };
-        img.src = url + '?v=' + new Date().getTime();
-      })(ib, iname, track.image);
+      function row(label, val, highlight) {
+        var d = document.createElement('div');
+        var span = document.createElement('span');
+        span.className = highlight || '';
+        span.textContent = val;
+        d.textContent = label + ': ';
+        d.appendChild(span);
+        return d;
+      }
+
+      dump.appendChild(row('Status', status, ok ? 'hlg' : 'hlr'));
+      dump.appendChild(row('Content-Type', ct, ct.indexOf('audio') !== -1 || ct.indexOf('octet') !== -1 ? 'hlg' : 'hlr'));
+      dump.appendChild(row('Accept-Ranges', ar, ar === 'bytes' ? 'hlg' : 'hlr'));
+      dump.appendChild(row('Content-Length', cl));
+      dump.appendChild(row('Cache-Control', cc));
+
+      fullPending.querySelector('.test-detail').textContent = '';
+      fullPending.querySelector('.test-detail').appendChild(dump);
+
+      // Separate Accept-Ranges callout
+      var arBadge = ar === 'bytes' ? 'pass' : 'fail';
+      var arMsg = ar === 'bytes'
+        ? 'Server supports byte-range — iOS can stream this file'
+        : 'Server does NOT support byte-range (Accept-Ranges: ' + ar + ') — iOS Safari requires this to play audio';
+      el2.appendChild(makeTest('Byte-Range Support', arBadge, arMsg, arBadge === 'fail' ? 'error' : 'good'));
+
+      // Content-Type callout
+      var ctOk = ct.indexOf('audio') !== -1 || ct.indexOf('octet') !== -1;
+      el2.appendChild(makeTest('Content-Type', ctOk ? 'pass' : 'fail',
+        ctOk ? ct : 'Unexpected Content-Type: ' + ct + ' — browser may refuse to play',
+        ctOk ? 'good' : 'error'));
     }
+  };
+  xhr.onerror = function() {
+    fullPending.querySelector('.badge').className = 'badge fail';
+    fullPending.querySelector('.badge').textContent = 'FAIL';
+    fullPending.querySelector('.test-detail').textContent = 'Network error fetching file';
+    fullPending.querySelector('.test-detail').className = 'test-detail error';
+  };
+  xhr.send();
+
+  // Byte-range request — iOS needs this to work
+  var rangePending = makeTest('Byte-Range GET (Range: bytes=0-1023)', 'running', 'Checking…');
+  el2.appendChild(rangePending);
+
+  var xhrRange = new XMLHttpRequest();
+  xhrRange.open('GET', firstAudioUrl, true);
+  xhrRange.setRequestHeader('Range', 'bytes=0-1023');
+  xhrRange.onreadystatechange = function() {
+    if (xhrRange.readyState === 4) {
+      var s = xhrRange.status;
+      var ok = s === 206;
+      rangePending.querySelector('.badge').className = 'badge ' + (ok ? 'pass' : (s === 200 ? 'warn' : 'fail'));
+      rangePending.querySelector('.badge').textContent = ok ? 'PASS' : (s === 200 ? 'WARN' : 'FAIL');
+      var msg = ok
+        ? '206 Partial Content — byte-range works correctly'
+        : s === 200 ? '200 returned instead of 206 — server ignored Range header (may break iOS streaming)'
+        : 'HTTP ' + s + ' — byte-range request failed';
+      rangePending.querySelector('.test-detail').textContent = msg;
+      rangePending.querySelector('.test-detail').className = 'test-detail ' + (ok ? 'good' : s === 200 ? '' : 'error');
+    }
+  };
+  xhrRange.onerror = function() {
+    rangePending.querySelector('.badge').className = 'badge fail';
+    rangePending.querySelector('.badge').textContent = 'FAIL';
+    rangePending.querySelector('.test-detail').textContent = 'Network error on range request';
+  };
+  xhrRange.send();
+}
+
+// ── track list with direct play + links ───────────────────────────────────────
+
+var activeAudio = null;
+var activeBtn = null;
+
+function buildTrackList(trackData) {
+  var el2 = document.getElementById('track-list');
+  el2.innerHTML = '';
+
+  trackData.forEach(function(track) {
+    var row = document.createElement('div');
+    row.className = 'track-row';
+
+    var name = el('div', {className: 'track-name'}, track.title);
+    var actions = el('div', {className: 'track-actions'});
+    var statusDiv = el('div', {className: 'track-status'});
+
+    // Play button
+    var playBtn = el('button', {className: 'mini-btn'});
+    playBtn.textContent = '▶ Play';
+    playBtn.addEventListener('click', function() {
+      if (activeAudio) {
+        activeAudio.pause();
+        activeAudio.src = '';
+        if (activeBtn) { activeBtn.textContent = '▶ Play'; activeBtn = null; }
+      }
+      var audio = document.createElement('audio');
+      audio.preload = 'none';
+      audio.src = track.audio;
+      activeAudio = audio;
+      activeBtn = playBtn;
+      playBtn.textContent = '…loading';
+      statusDiv.style.color = '#999';
+      statusDiv.textContent = 'Attempting playback of: ' + track.audio;
+
+      try {
+        var p = audio.play();
+        if (p !== undefined && typeof p.then === 'function') {
+          p.then(function() {
+            playBtn.textContent = '■ Stop';
+            statusDiv.style.color = '#4caf50';
+            statusDiv.textContent = '✓ Playing!';
+          }).catch(function(e) {
+            playBtn.textContent = '▶ Play';
+            statusDiv.style.color = '#f44336';
+            statusDiv.textContent = '✗ Blocked: ' + (e.message || e.name);
+          });
+        } else {
+          // iOS 9 — no promise
+          playBtn.textContent = '■ Stop';
+          statusDiv.style.color = '#ff9800';
+          statusDiv.textContent = 'play() called — check if you can hear audio';
+        }
+        audio.addEventListener('error', function() {
+          var code = audio.error ? audio.error.code : '?';
+          var msg = {1:'ABORTED',2:'NETWORK',3:'DECODE',4:'NOT_SUPPORTED'}[code] || ('code ' + code);
+          playBtn.textContent = '▶ Play';
+          statusDiv.style.color = '#f44336';
+          statusDiv.textContent = '✗ Audio error: ' + msg + ' — URL: ' + track.audio;
+        });
+      } catch(e) {
+        playBtn.textContent = '▶ Play';
+        statusDiv.style.color = '#f44336';
+        statusDiv.textContent = '✗ Exception: ' + e.message;
+      }
+
+      playBtn.addEventListener('click', function stopHandler() {
+        if (activeAudio === audio) {
+          audio.pause();
+          audio.src = '';
+          activeAudio = null;
+          playBtn.textContent = '▶ Play';
+          statusDiv.textContent = '';
+          playBtn.removeEventListener('click', stopHandler);
+        }
+      });
+    });
+
+    // Direct link to MP3
+    var link = el('a', {className: 'mini-btn', href: track.audio, target: '_blank'});
+    link.textContent = '⬇ Open MP3';
+
+    actions.appendChild(playBtn);
+    actions.appendChild(link);
+    row.appendChild(name);
+    row.appendChild(actions);
+    row.appendChild(statusDiv);
+    el2.appendChild(row);
   });
 }
 
-document.getElementById('run-btn').addEventListener('click', function() {
-  runEnvTests();
-  runAudioTests();
-  runNetworkTests();
-});
+// ── external audio test ───────────────────────────────────────────────────────
 
-// Playback test button
-document.getElementById('play-test-btn').addEventListener('click', function() {
-  var result = document.getElementById('play-test-result');
-  var btn = document.getElementById('play-test-btn');
+document.getElementById('ext-play-btn').addEventListener('click', function() {
+  var result = document.getElementById('ext-result');
+  var btn = document.getElementById('ext-play-btn');
+  var audio = document.getElementById('ext-player');
 
-  if (!firstTrackAudio) {
-    result.textContent = 'Run tests first so track list can load.';
-    return;
-  }
+  // A tiny public domain MP3 from Wikipedia/Wikimedia
+  audio.src = 'https://upload.wikimedia.org/wikipedia/commons/4/4e/BWV_543-fugue.ogg';
+  // Fallback — use a well-known MP3 test file
+  audio.src = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
 
   result.style.color = '#999';
-  result.textContent = 'Attempting playback...';
-  testPlayer.src = firstTrackAudio;
+  result.textContent = 'Attempting external MP3…';
 
   try {
-    var p = testPlayer.play();
+    var p = audio.play();
     if (p !== undefined && typeof p.then === 'function') {
       p.then(function() {
         result.style.color = '#4caf50';
-        result.textContent = '✓ Audio is playing! Your browser supports audio playback.';
+        result.textContent = '✓ External audio playing! The iPad CAN play MP3. Issue is likely with how GitHub Pages serves the files.';
         btn.textContent = '■ Stop';
         btn.onclick = function() {
-          testPlayer.pause();
-          testPlayer.currentTime = 0;
+          audio.pause(); audio.src = '';
           result.style.color = '#6b6560';
           result.textContent = 'Stopped.';
-          btn.textContent = '▶ Tap to test audio playback';
+          btn.textContent = '▶ Play external test MP3';
           btn.onclick = null;
-          document.getElementById('play-test-btn').addEventListener('click', arguments.callee);
         };
       }).catch(function(e) {
         result.style.color = '#f44336';
-        result.textContent = '✗ Playback blocked: ' + (e.message || e.name || 'unknown error');
+        result.textContent = '✗ Blocked: ' + (e.message || e.name) + ' — autoplay policy blocked even external audio.';
       });
     } else {
-      // Older browser — no Promise returned, assume it worked
       result.style.color = '#ff9800';
-      result.textContent = 'Play called (older browser — check if you can hear audio)';
+      result.textContent = 'play() called (iOS 9 — no Promise). Check if you can hear anything.';
     }
+    audio.addEventListener('error', function() {
+      result.style.color = '#f44336';
+      result.textContent = '✗ Error loading external MP3. Possible network issue.';
+    });
   } catch(e) {
     result.style.color = '#f44336';
     result.textContent = '✗ Exception: ' + e.message;
   }
 });
 
-// Run env tests immediately on load (no network calls)
+// ── load tracks then run everything ──────────────────────────────────────────
+
+function runAll() {
+  runEnvTests();
+  runAudioTests();
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', 'tracks.json?v=' + new Date().getTime(), true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      try {
+        tracks = JSON.parse(xhr.responseText);
+        buildTrackList(tracks);
+        if (tracks.length > 0) {
+          runHeaderTests(tracks[0].audio);
+        }
+      } catch(e) {}
+    }
+  };
+  xhr.send();
+}
+
+document.getElementById('run-btn').addEventListener('click', runAll);
+
+// Run env + audio immediately
 runEnvTests();
 runAudioTests();
 </script>
