@@ -208,6 +208,7 @@ html, body {
   <div id="header">
     <div id="station-name">Whakatū Hits Listening Station</div>
     <div id="month-label"></div>
+    <div style="font-family:Arial,sans-serif;font-size:10px;color:#333;margin-top:4px;letter-spacing:1px;">v1.2</div>
   </div>
   <div id="artwork-wrap">
     <img id="artwork" src="" alt="">
@@ -222,7 +223,7 @@ html, body {
     </div>
     <div id="buttons">
       <div class="ctrl-btn" id="prev-btn">&#9664;&#9664;</div>
-      <div class="ctrl-btn" id="stop-btn">&#9646;&#9646;</div>
+      <div class="ctrl-btn" id="play-btn">&#9654;</div>
       <div class="ctrl-btn" id="next-btn">&#9654;&#9654;</div>
     </div>
     <div id="status-wrap">
@@ -241,11 +242,16 @@ document.getElementById('month-label').innerHTML =
 
 var tracks = [];
 var idx = 0;
-var stopped = false;
+var playing = false;
 var player = document.getElementById('player');
 var artwork = document.getElementById('artwork');
 var trackTitle = document.getElementById('track-title');
 var status = document.getElementById('status');
+var playBtn = document.getElementById('play-btn');
+
+function setPlayBtn(isPlaying) {
+  playBtn.innerHTML = isPlaying ? '&#9646;&#9646;' : '&#9654;';
+}
 
 function loadTracks() {
   var xhr = new XMLHttpRequest();
@@ -286,20 +292,23 @@ function showTrack(i) {
 }
 
 function playTrack(i) {
-  stopped = false;
   showTrack(i);
+  playing = true;
+  setPlayBtn(true);
   var p = player.play();
   if (p !== undefined) {
     p.then(function() {
       status.innerHTML = '';
     }).catch(function() {
-      status.innerHTML = 'Tap play';
+      playing = false;
+      setPlayBtn(false);
+      status.innerHTML = '';
     });
   }
 }
 
 player.addEventListener('ended', function() {
-  if (!stopped) {
+  if (playing) {
     playTrack(idx + 1);
   }
 });
@@ -314,18 +323,21 @@ document.getElementById('prev-btn').addEventListener('click', function() {
   flashBtn('prev-btn');
   if (player.currentTime > 3) {
     player.currentTime = 0;
-    if (!stopped) player.play();
+    if (playing) player.play();
   } else {
     playTrack(idx - 1);
   }
 });
 
-document.getElementById('stop-btn').addEventListener('click', function() {
-  flashBtn('stop-btn');
-  stopped = true;
-  player.pause();
-  player.currentTime = 0;
-  status.innerHTML = 'Stopped';
+playBtn.addEventListener('click', function() {
+  flashBtn('play-btn');
+  if (playing) {
+    playing = false;
+    player.pause();
+    setPlayBtn(false);
+  } else {
+    playTrack(idx);
+  }
 });
 
 document.getElementById('next-btn').addEventListener('click', function() {
