@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Listening Station — Diagnostics</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0a; color: #f0ece4; font-family: Arial, sans-serif; font-size: 14px; padding: 16px; }
+h1 { font-family: 'Courier New', serif; font-size: 18px; color: white; margin-bottom: 4px; letter-spacing: 2px; }
+.subtitle { color: #6b6560; font-size: 11px; margin-bottom: 20px; }
+.section { margin-bottom: 24px; }
+.section h2 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #6b6560; margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+.test { display: flex; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #1a1a1a; gap: 10px; }
+.badge { flex-shrink: 0; width: 64px; text-align: center; font-size: 10px; font-weight: bold; padding: 3px 6px; border-radius: 4px; margin-top: 1px; }
+.badge.pass { background: #1a3a1a; color: #4caf50; }
+.badge.fail { background: #3a1a1a; color: #f44336; }
+.badge.warn { background: #3a2a00; color: #ff9800; }
+.badge.info { background: #1a2a3a; color: #64b5f6; }
+.badge.running { background: #2a2a2a; color: #999; }
+.test-info { flex: 1; }
+.test-name { font-size: 13px; color: #f0ece4; margin-bottom: 2px; }
+.test-detail { font-size: 11px; color: #6b6560; line-height: 1.5; }
+.test-detail.error { color: #f44336; }
+button { background: #2a2a2a; border: 2px solid #666; color: #f0ece4; border-radius: 8px; padding: 10px 20px; font-size: 14px; cursor: pointer; margin: 4px 4px 4px 0; -webkit-tap-highlight-color: transparent; }
+button:active { background: #3a3a3a; border-color: #c8a96e; }
+.back-link { display: inline-block; margin-bottom: 20px; color: #6b6560; text-decoration: none; font-size: 12px; letter-spacing: 1px; }
+.back-link:before { content: '← '; }
+#audio-test-area { margin-top: 8px; }
+.track-test { padding: 6px 0; border-bottom: 1px solid #1a1a1a; font-size: 11px; display: flex; gap: 8px; align-items: center; }
+.track-test .tbadge { flex-shrink: 0; width: 48px; font-size: 10px; font-weight: bold; text-align: center; padding: 2px 4px; border-radius: 3px; }
+.track-test .tbadge.pass { background: #1a3a1a; color: #4caf50; }
+.track-test .tbadge.fail { background: #3a1a1a; color: #f44336; }
+.track-test .tbadge.running { background: #2a2a2a; color: #999; }
+.track-test .tname { flex: 1; color: #aaa; }
+</style>
+</head>
+<body>
+
+<a class="back-link" href="index.html">Back to player</a>
+
+<h1>Diagnostics</h1>
+<p class="subtitle">Whakatū Listening Station — tap "Run Tests" to begin</p>
+
+<div class="section">
+  <h2>Environment</h2>
+  <div id="env-results"></div>
+</div>
+
+<div class="section">
+  <h2>Audio Support</h2>
+  <div id="audio-results"></div>
+</div>
+
+<div class="section">
+  <h2>Network &amp; Data</h2>
+  <div id="network-results"></div>
+</div>
+
+<div class="section">
+  <h2>Track Files</h2>
+  <p style="font-size:11px;color:#6b6560;margin-bottom:8px;">Checks each track can be fetched. Does not test audio playback — use the button below.</p>
+  <div id="track-results"></div>
+</div>
+
+<div class="section">
+  <h2>Audio Playback Test</h2>
+  <p style="font-size:11px;color:#6b6560;margin-bottom:8px;">Tap the button below to attempt playing the first track. iOS requires a direct tap to allow audio.</p>
+  <div id="audio-test-area">
+    <button id="play-test-btn">▶ Tap to test audio playback</button>
+    <div id="play-test-result" style="margin-top:8px;font-size:12px;color:#6b6560;"></div>
+  </div>
+</div>
+
+<div style="margin-top: 8px; margin-bottom: 24px;">
+  <button id="run-btn">Run Tests</button>
+</div>
+
+<audio id="test-player" preload="none"></audio>
+
+<script>
+var testPlayer = document.getElementById('test-player');
+var firstTrackAudio = null;
+
+function makeTest(name, badge, detail, isError) {
+  var div = document.createElement('div');
+  div.className = 'test';
+  var b = document.createElement('div');
+  b.className = 'badge ' + badge;
+  b.textContent = badge === 'pass' ? 'PASS' : badge === 'fail' ? 'FAIL' : badge === 'warn' ? 'WARN' : badge === 'info' ? 'INFO' : '...';
+  var info = document.createElement('div');
+  info.className = 'test-info';
+  var n = document.createElement('div');
+  n.className = 'test-name';
+  n.textContent = name;
+  var d = document.createElement('div');
+  d.className = 'test-detail' + (isError ? ' error' : '');
+  d.textContent = detail;
+  info.appendChild(n);
+  info.appendChild(d);
+  div.appendChild(b);
+  div.appendChild(info);
+  return div;
+}
+
+function runEnvTests() {
+  var el = document.getElementById('env-results');
+  el.innerHTML = '';
+
+  // User agent
+  el.appendChild(makeTest('User Agent', 'info', navigator.userAgent));
+
+  // iOS version detection
+  var ua = navigator.userAgent;
+  var iosMatch = ua.match(/OS (\d+)_(\d+)/);
+  if (iosMatch) {
+    var major = parseInt(iosMatch[1]);
+    var badge = major >= 13 ? 'pass' : major === 12 ? 'warn' : 'fail';
+    el.appendChild(makeTest('iOS Version', badge, 'iOS ' + major + '.' + iosMatch[2] + (major < 13 ? ' — limited audio autoplay support' : '')));
+  } else {
+    el.appendChild(makeTest('iOS Version', 'info', 'Not iOS (or version not detected)'));
+  }
+
+  // Service Worker support
+  if ('serviceWorker' in navigator) {
+    el.appendChild(makeTest('Service Worker', 'pass', 'Supported'));
+  } else {
+    el.appendChild(makeTest('Service Worker', 'warn', 'Not supported — offline mode unavailable but player will still work'));
+  }
+
+  // XHR support
+  try {
+    var x = new XMLHttpRequest();
+    el.appendChild(makeTest('XMLHttpRequest', 'pass', 'Available'));
+  } catch(e) {
+    el.appendChild(makeTest('XMLHttpRequest', 'fail', 'Not available: ' + e.message));
+  }
+
+  // localStorage
+  try {
+    localStorage.setItem('_test', '1');
+    localStorage.removeItem('_test');
+    el.appendChild(makeTest('localStorage', 'pass', 'Available'));
+  } catch(e) {
+    el.appendChild(makeTest('localStorage', 'warn', 'Blocked (private browsing?) — not required'));
+  }
+}
+
+function runAudioTests() {
+  var el = document.getElementById('audio-results');
+  el.innerHTML = '';
+
+  var audio = document.createElement('audio');
+
+  // MP3
+  var mp3 = audio.canPlayType('audio/mpeg');
+  el.appendChild(makeTest('MP3 (audio/mpeg)', mp3 === 'probably' ? 'pass' : mp3 === 'maybe' ? 'warn' : 'fail',
+    mp3 === 'probably' ? 'Fully supported' : mp3 === 'maybe' ? 'Possibly supported' : 'Not supported'));
+
+  // M4A / AAC
+  var m4a = audio.canPlayType('audio/mp4; codecs="mp4a.40.2"');
+  el.appendChild(makeTest('M4A / AAC', m4a === 'probably' ? 'pass' : m4a === 'maybe' ? 'warn' : 'fail',
+    m4a === 'probably' ? 'Fully supported' : m4a === 'maybe' ? 'Possibly supported' : 'Not supported'));
+
+  // Autoplay policy
+  var tempAudio = document.createElement('audio');
+  tempAudio.src = 'data:audio/mpeg;base64,/+MYxAAAAANIAAAAAExBTUUzLjk4LjIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+  var p = tempAudio.play();
+  if (p !== undefined && typeof p.then === 'function') {
+    p.then(function() {
+      el.appendChild(makeTest('Autoplay Policy', 'pass', 'Autoplay allowed without user gesture'));
+      tempAudio.pause();
+    }).catch(function(e) {
+      el.appendChild(makeTest('Autoplay Policy', 'warn', 'Blocked — user must tap Play first (normal on iOS)'));
+    });
+  } else {
+    el.appendChild(makeTest('Autoplay Policy', 'info', 'Could not determine (older browser)'));
+  }
+}
+
+function runNetworkTests() {
+  var el = document.getElementById('network-results');
+  el.innerHTML = '';
+
+  // Fetch tracks.json
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', 'tracks.json?v=' + new Date().getTime(), true);
+  var pending = makeTest('Load tracks.json', 'running', 'Fetching...');
+  el.appendChild(pending);
+
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4) {
+      if (xhr.status === 200) {
+        try {
+          var data = JSON.parse(xhr.responseText);
+          pending.querySelector('.badge').className = 'badge pass';
+          pending.querySelector('.badge').textContent = 'PASS';
+          pending.querySelector('.test-detail').textContent = 'Loaded OK — ' + data.length + ' track(s) found';
+          runTrackTests(data);
+        } catch(e) {
+          pending.querySelector('.badge').className = 'badge fail';
+          pending.querySelector('.badge').textContent = 'FAIL';
+          pending.querySelector('.test-detail').textContent = 'JSON parse error: ' + e.message;
+          pending.querySelector('.test-detail').className = 'test-detail error';
+        }
+      } else {
+        pending.querySelector('.badge').className = 'badge fail';
+        pending.querySelector('.badge').textContent = 'FAIL';
+        pending.querySelector('.test-detail').textContent = 'HTTP ' + xhr.status + ' — could not load tracks.json';
+        pending.querySelector('.test-detail').className = 'test-detail error';
+      }
+    }
+  };
+  xhr.send();
+}
+
+function runTrackTests(tracks) {
+  var el = document.getElementById('track-results');
+  el.innerHTML = '';
+
+  if (!tracks || tracks.length === 0) {
+    el.appendChild(makeTest('Track files', 'fail', 'No tracks in tracks.json'));
+    return;
+  }
+
+  // Store first track for playback test
+  if (tracks[0] && tracks[0].audio) {
+    firstTrackAudio = tracks[0].audio;
+  }
+
+  tracks.forEach(function(track, i) {
+    // Audio file
+    var audioRow = document.createElement('div');
+    audioRow.className = 'track-test';
+    var ab = document.createElement('div');
+    ab.className = 'tbadge running';
+    ab.textContent = '...';
+    var aname = document.createElement('div');
+    aname.className = 'tname';
+    aname.textContent = track.title + ' (audio)';
+    audioRow.appendChild(ab);
+    audioRow.appendChild(aname);
+    el.appendChild(audioRow);
+
+    (function(badge, name, url) {
+      var x = new XMLHttpRequest();
+      x.open('HEAD', url + '?v=' + new Date().getTime(), true);
+      x.onreadystatechange = function() {
+        if (x.readyState === 4) {
+          if (x.status === 200 || x.status === 206) {
+            badge.className = 'tbadge pass';
+            badge.textContent = 'OK';
+          } else {
+            badge.className = 'tbadge fail';
+            badge.textContent = 'FAIL';
+            name.style.color = '#f44336';
+            name.textContent += ' — HTTP ' + x.status;
+          }
+        }
+      };
+      x.onerror = function() {
+        badge.className = 'tbadge fail';
+        badge.textContent = 'ERR';
+        name.style.color = '#f44336';
+        name.textContent += ' — network error';
+      };
+      x.send();
+    })(ab, aname, track.audio);
+
+    // Image file
+    if (track.image) {
+      var imgRow = document.createElement('div');
+      imgRow.className = 'track-test';
+      var ib = document.createElement('div');
+      ib.className = 'tbadge running';
+      ib.textContent = '...';
+      var iname = document.createElement('div');
+      iname.className = 'tname';
+      iname.style.color = '#555';
+      iname.textContent = track.title + ' (image)';
+      imgRow.appendChild(ib);
+      imgRow.appendChild(iname);
+      el.appendChild(imgRow);
+
+      (function(badge, name, url) {
+        var img = new Image();
+        img.onload = function() {
+          badge.className = 'tbadge pass';
+          badge.textContent = 'OK';
+        };
+        img.onerror = function() {
+          badge.className = 'tbadge fail';
+          badge.textContent = 'FAIL';
+          name.style.color = '#f44336';
+          name.textContent += ' — failed to load';
+        };
+        img.src = url + '?v=' + new Date().getTime();
+      })(ib, iname, track.image);
+    }
+  });
+}
+
+document.getElementById('run-btn').addEventListener('click', function() {
+  runEnvTests();
+  runAudioTests();
+  runNetworkTests();
+});
+
+// Playback test button
+document.getElementById('play-test-btn').addEventListener('click', function() {
+  var result = document.getElementById('play-test-result');
+  var btn = document.getElementById('play-test-btn');
+
+  if (!firstTrackAudio) {
+    result.textContent = 'Run tests first so track list can load.';
+    return;
+  }
+
+  result.style.color = '#999';
+  result.textContent = 'Attempting playback...';
+  testPlayer.src = firstTrackAudio;
+
+  try {
+    var p = testPlayer.play();
+    if (p !== undefined && typeof p.then === 'function') {
+      p.then(function() {
+        result.style.color = '#4caf50';
+        result.textContent = '✓ Audio is playing! Your browser supports audio playback.';
+        btn.textContent = '■ Stop';
+        btn.onclick = function() {
+          testPlayer.pause();
+          testPlayer.currentTime = 0;
+          result.style.color = '#6b6560';
+          result.textContent = 'Stopped.';
+          btn.textContent = '▶ Tap to test audio playback';
+          btn.onclick = null;
+          document.getElementById('play-test-btn').addEventListener('click', arguments.callee);
+        };
+      }).catch(function(e) {
+        result.style.color = '#f44336';
+        result.textContent = '✗ Playback blocked: ' + (e.message || e.name || 'unknown error');
+      });
+    } else {
+      // Older browser — no Promise returned, assume it worked
+      result.style.color = '#ff9800';
+      result.textContent = 'Play called (older browser — check if you can hear audio)';
+    }
+  } catch(e) {
+    result.style.color = '#f44336';
+    result.textContent = '✗ Exception: ' + e.message;
+  }
+});
+
+// Run env tests immediately on load (no network calls)
+runEnvTests();
+runAudioTests();
+</script>
+</body>
+</html>
