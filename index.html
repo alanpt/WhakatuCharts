@@ -13,7 +13,7 @@
 
 html, body {
   width: 100%; height: 100%;
-  background: #0a0a0a;
+  background: #2a2520;
   overflow: hidden;
   touch-action: pan-y;
 }
@@ -25,42 +25,11 @@ html, body {
   flex-direction: column;
 }
 
-/* ── header ── */
-#header {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px 16px 6px;
-}
-
-#logo {
-  height: 44px;
-  width: auto;
-  display: block;
-  margin-bottom: 6px;
-}
-
-#station-name {
-  font-family: 'Share Tech Mono', 'Courier New', monospace;
-  font-size: 14px;
-  color: #f0ece4;
-  letter-spacing: 2px;
-  text-align: center;
-  text-transform: uppercase;
-}
-
-#month-label {
-  font-family: 'Share Tech Mono', 'Courier New', monospace;
-  font-size: 10px;
-  color: #6b6560;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-top: 3px;
-}
+/* ── no header — logo moves to footer ── */
 
 /* ── stage: record + sleeve ── */
 #stage {
+  background: #2a2520;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -100,18 +69,18 @@ html, body {
   background: radial-gradient(circle at 50% 50%,
     #1a1a1a 0%,
     #1a1a1a 14%,
-    #2a2a2a 14.5%,
-    #111 16%,
-    #222 17%,
-    #111 20%,
-    #222 23%,
-    #111 26%,
-    #222 30%,
-    #111 34%,
-    #222 38%,
-    #111 42%,
-    #222 47%,
-    #111 50%
+    #3a3a3a 14.5%,
+    #1a1a1a 16%,
+    #444 17%,
+    #1a1a1a 20%,
+    #444 23%,
+    #1a1a1a 26%,
+    #444 30%,
+    #1a1a1a 34%,
+    #444 38%,
+    #1a1a1a 42%,
+    #444 47%,
+    #1a1a1a 50%
   );
   box-shadow: 0 4px 24px rgba(0,0,0,0.7);
   animation: none;
@@ -125,10 +94,10 @@ html, body {
   inset: 0;
   border-radius: 50%;
   background: repeating-conic-gradient(
-    rgba(255,255,255,0.015) 0deg,
+    rgba(255,255,255,0.06) 0deg,
     rgba(0,0,0,0) 1deg,
     rgba(0,0,0,0) 3deg,
-    rgba(255,255,255,0.015) 4deg
+    rgba(255,255,255,0.06) 4deg
   );
 }
 
@@ -222,9 +191,18 @@ html, body {
 /* ── controls bar ── */
 #controls-bar {
   flex-shrink: 0;
-  background: #0f0f0f;
-  border-top: 1px solid #1e1e1e;
+  background: #1a1714;
+  border-top: 1px solid #2e2a26;
   padding: 8px 12px 10px;
+}
+
+/* logo in footer */
+#footer-logo {
+  display: block;
+  height: 32px;
+  width: auto;
+  margin: 0 auto 6px;
+  opacity: 0.7;
 }
 
 /* LCD marquee title */
@@ -334,12 +312,6 @@ html, body {
 
 <div id="app">
 
-  <div id="header">
-    <img id="logo" src="logo.png" alt="WAA" onerror="this.style.display='none'">
-    <div id="station-name">Whakatū's Latest Hits</div>
-    <div id="month-label"></div>
-  </div>
-
   <div id="stage">
     <div id="card">
       <div id="record"></div>
@@ -364,8 +336,9 @@ html, body {
       </div>
       <button id="fullscreen-btn" title="Fullscreen">&#x26F6;</button>
     </div>
-    <div id="version">v2.2</div>
+    <div id="version">v2.3</div>
   </div>
+  <img id="footer-logo" src="logo.png" alt="WAA" onerror="this.style.display='none'">
 
 </div>
 
@@ -539,13 +512,31 @@ function showTrack(i, direction) {
   updateMarquee();
 
   if (direction) {
+    // 1. slide out
     card.className = direction === 'next' ? 'swipe-out-left' : 'swipe-out-right';
+    // 2. while off-screen, swap image and wait for it to load
     setTimeout(function() {
-      setSleeveImage(t.image);
       applyTilt();
-      card.className = direction === 'next' ? 'swipe-in-left' : 'swipe-in-right';
-      setTimeout(function() { card.className = ''; }, 300);
-    }, 250);
+      var newSrc = t.image || '';
+      if (newSrc) {
+        var preload = new Image();
+        preload.onload = function() {
+          setSleeveImage(newSrc);
+          card.className = direction === 'next' ? 'swipe-in-left' : 'swipe-in-right';
+          setTimeout(function() { card.className = ''; }, 300);
+        };
+        preload.onerror = function() {
+          setSleeveImage('');
+          card.className = direction === 'next' ? 'swipe-in-left' : 'swipe-in-right';
+          setTimeout(function() { card.className = ''; }, 300);
+        };
+        preload.src = newSrc;
+      } else {
+        setSleeveImage('');
+        card.className = direction === 'next' ? 'swipe-in-left' : 'swipe-in-right';
+        setTimeout(function() { card.className = ''; }, 300);
+      }
+    }, 260);
   } else {
     card.className = '';
     setSleeveImage(t.image);
