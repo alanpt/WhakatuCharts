@@ -288,13 +288,17 @@ function showTrack(i) {
 function playTrack(i) {
   stopped = false;
   showTrack(i);
-  var p = player.play();
-  if (p !== undefined) {
-    p.then(function() {
-      status.innerHTML = '';
-    }).catch(function() {
-      status.innerHTML = 'Tap play';
-    });
+  try {
+    var p = player.play();
+    if (p !== undefined && typeof p.then === 'function') {
+      p.then(function() {
+        status.innerHTML = '';
+      }).catch(function() {
+        status.innerHTML = 'Tap ▶▶';
+      });
+    }
+  } catch(e) {
+    status.innerHTML = 'Tap ▶▶';
   }
 }
 
@@ -334,6 +338,12 @@ document.getElementById('next-btn').addEventListener('click', function() {
 });
 
 loadTracks();
+
+try {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+} catch(e) {}
 </script>
 </body>
 </html>
