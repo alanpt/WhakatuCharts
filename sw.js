@@ -1,54 +1,56 @@
-var CACHE = 'whakatu-v3';
-var STATIC = ['/', '/index.html', '/manifest.json', '/logo.png'];
+const CACHE = 'whakatu-v2'; // bump this whenever you push changes
+const STATIC = ['/', '/index.html', '/manifest.json', '/logo.png'];
 
 self.addEventListener('install', function(e) {
-  e.waitUntil(caches.open(CACHE).then(function(c) { return c.addAll(STATIC); }));
-  self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE).then(function(cache) {
+      return cache.addAll(STATIC);
+    })
+  );
 });
 
 self.addEventListener('activate', function(e) {
   e.waitUntil(
-    caches.keys().then(function(keys) {
+    caches.keys().then(function(keyList) {
       return Promise.all(
-        keys.filter(function(k) { return k !== CACHE; })
-            .map(function(k) { return caches.delete(k); })
+        keyList.map(function(key) {
+          if (key !== CACHE) {
+            return caches.delete(key);
+          }
+        })
       );
     })
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', function(e) {
-  var url = e.request.url;
-
-  // Never intercept audio — let browser handle range requests natively
-  if (url.indexOf('/tracks/') !== -1 &&
-     (url.slice(-4) === '.mp3' || url.slice(-4) === '.m4a')) {
-    return;
-  }
-
-  // Network-first for tracks.json and index.html
-  if (url.indexOf('tracks.json') !== -1 ||
-      url.slice(-1) === '/' ||
-      url.indexOf('index.html') !== -1) {
+  // Network-first for tracks.json AND index.html
+  if (e.request.url.includes('tracks.json') || 
+      e.request.url.endsWith('/') || 
+      e.request.url.includes('index.html')) {
     e.respondWith(
-      fetch(e.request).then(function(res) {
-        var clone = res.clone();
-        caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
-        return res;
-      }).catch(function() {
-        return caches.match(e.request);
-      })
+      fetch(e.request)
+        .then(function(res) {
+          var clone = res.clone();
+          caches.open(CACHE).then(function(cache) {
+            cache.put(e.request, clone);
+          });
+          return res;
+        })
+        .catch(function() {
+          return caches.match(e.request);
+        })
     );
     return;
   }
-
-  // Cache-first for everything else
+  // Cache-first for everything else (audio, images, logo)
   e.respondWith(
     caches.match(e.request).then(function(hit) {
       return hit || fetch(e.request).then(function(res) {
         var clone = res.clone();
-        caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
+        caches.open(CACHE).then(function(cache) {
+          cache.put(e.request, clone);
+        });
         return res;
       });
     })
