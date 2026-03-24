@@ -60,10 +60,10 @@ html, body {
 /* ── vinyl record ── */
 #record {
   position: absolute;
-  top: 10%;
-  right: -22%;
-  width: 82%;
-  height: 82%;
+  top: 2%;
+  width: 80%;
+  height: 80%;
+  transition: right 0.6s cubic-bezier(.4,0,.2,1);
   border-radius: 50%;
   background: radial-gradient(circle at 50% 50%,
     #111 0%, #111 13%,
@@ -213,8 +213,8 @@ html, body {
 }
 
 @keyframes marquee {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(var(--mdist)); }
+  0%          { transform: translateX(100%); }
+  100%        { transform: translateX(var(--mdist)); }
 }
 
 /* controls row: logo | buttons | fullscreen */
@@ -313,7 +313,7 @@ html, body {
       </div>
       <button id="fullscreen-btn">&#x26F6;</button>
     </div>
-    <div id="version">v2.5</div>
+    <div id="version">v2.7</div>
   </div>
 
 </div>
@@ -349,8 +349,10 @@ function sizeCard() {
   card.style.width  = size + 'px';
   card.style.height = size + 'px';
 }
-window.addEventListener('resize', sizeCard);
+window.addEventListener('resize', function() { sizeCard(); if (!playing) recordOut(); else recordIn(); });
 sizeCard();
+// set initial record position after size is known
+setTimeout(function() { recordOut(); }, 0);
 
 // ── record spin ───────────────────────────────────────────────────────────────
 
@@ -372,7 +374,20 @@ function spinLoop(ts) {
   }
 }
 
+function recordOut() {
+  // position record hidden behind sleeve — use px based on card size
+  var size = parseInt(card.style.width) || 260;
+  record.style.right = Math.round(size * 0.20) + 'px';
+}
+
+function recordIn() {
+  // position record peeking out right
+  var size = parseInt(card.style.width) || 260;
+  record.style.right = Math.round(size * -0.18) + 'px';
+}
+
 function startSpin() {
+  recordIn();
   if (!spinRAF) { lastTS = null; spinRAF = requestAnimationFrame(spinLoop); }
   (function accel() {
     if (spinSpeed < 0.45) { spinSpeed = Math.min(spinSpeed * 1.09 + 0.004, 0.45); setTimeout(accel, 16); }
@@ -380,6 +395,7 @@ function startSpin() {
 }
 
 function stopSpin() {
+  recordOut();
   (function decel() {
     if (spinSpeed > 0.004) { spinSpeed *= 0.96; setTimeout(decel, 16); }
     else spinSpeed = 0;
@@ -391,15 +407,18 @@ function stopSpin() {
 function updateMarquee() {
   var wrap = document.getElementById('title-wrap');
   var el   = trackTitleEl;
+  // force reflow to restart animation
   el.style.animation = 'none';
-  el.style.transform  = 'translateX(0)';
+  el.style.transform = 'translateX(0)';
+  void el.offsetWidth; // trigger reflow
   requestAnimationFrame(function() {
-    var overflow = el.scrollWidth - (wrap.clientWidth - 16);
-    if (overflow > 8) {
-      var dur = Math.max(6, overflow / 30);
-      el.style.setProperty('--mdist', '-' + (overflow + 40) + 'px');
-      el.style.animation = 'marquee ' + dur + 's linear 1s infinite';
-    }
+    var wrapW = wrap.clientWidth;
+    var textW = el.scrollWidth;
+    // always scroll — start off right edge, scroll to past left edge
+    var totalDist = wrapW + textW;
+    var dur = Math.max(5, totalDist / 80); // px per second
+    el.style.setProperty('--mdist', '-' + (textW + 20) + 'px');
+    el.style.animation = 'marquee ' + dur + 's linear 0.5s infinite';
   });
 }
 
@@ -453,7 +472,11 @@ function showTrack(i, dir) {
   if (dir) {
     // slide whole card (sleeve + record) out together
     card.className = dir === 'next' ? 'out-left' : 'out-right';
+    // snap record hidden immediately (no transition) so it arrives hidden
+    record.style.transition = 'none';
+    recordOut();
     setTimeout(function() {
+      record.style.transition = '';
       applyTilt();
       if (t.image) {
         var img = new Image();
@@ -473,6 +496,10 @@ function showTrack(i, dir) {
     card.className = '';
     setSleeveImage(t.image || '');
     applyTilt();
+    // snap record to correct position without transition
+    record.style.transition = 'none';
+    recordOut();
+    setTimeout(function() { record.style.transition = ''; }, 50);
   }
 }
 
