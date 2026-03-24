@@ -208,7 +208,7 @@ html, body {
   <div id="header">
     <div id="station-name">Whakatū Hits Listening Station</div>
     <div id="month-label"></div>
-    <div style="font-family:Arial,sans-serif;font-size:10px;color:#333;margin-top:4px;letter-spacing:1px;">v1.4</div>
+    <div style="font-family:Arial,sans-serif;font-size:10px;color:#333;margin-top:4px;letter-spacing:1px;">v1.5</div>
   </div>
   <div id="artwork-wrap">
     <img id="artwork" src="" alt="">
@@ -234,6 +234,11 @@ html, body {
 </div>
 
 <audio id="player"></audio>
+<div id="native-fallback" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#111;border-top:1px solid #2a2a2a;padding:8px 12px;z-index:999;">
+  <div style="font-family:Arial,sans-serif;font-size:10px;color:#6b6560;margin-bottom:4px;text-align:center;letter-spacing:1px;">NATIVE PLAYER</div>
+  <audio id="native-player" controls style="width:100%;height:36px;"></audio>
+  <div id="native-title" style="font-family:Arial,sans-serif;font-size:11px;color:#aaa;text-align:center;margin-top:4px;"></div>
+</div>
 
 <script>
 var months = ['January','February','March','April','May','June',
@@ -244,14 +249,31 @@ document.getElementById('month-label').innerHTML =
 var tracks = [];
 var idx = 0;
 var playing = false;
+var silenceTimer = null;
+var fallbackShown = false;
 var player = document.getElementById('player');
 var artwork = document.getElementById('artwork');
 var trackTitle = document.getElementById('track-title');
 var status = document.getElementById('status');
 var playBtn = document.getElementById('play-btn');
+var nativeFallback = document.getElementById('native-fallback');
+var nativePlayer = document.getElementById('native-player');
+var nativeTitle = document.getElementById('native-title');
 
 function setPlayBtn(isPlaying) {
   playBtn.innerHTML = isPlaying ? '&#9646;&#9646;' : '&#9654;';
+}
+
+function showNativeFallback() {
+  if (fallbackShown) return;
+  fallbackShown = true;
+  var t = tracks[idx];
+  nativePlayer.src = t.audio;
+  nativeTitle.innerHTML = t.title;
+  nativeFallback.style.display = 'block';
+  // shrink art area to make room
+  document.getElementById('art-area').style.bottom = '30%';
+  document.getElementById('controls-bar').style.bottom = '15%';
 }
 
 function loadTracks() {
@@ -296,23 +318,36 @@ function playTrack(i) {
   showTrack(i);
   playing = true;
   setPlayBtn(true);
-  // Load first, then play — needed for iOS 9
+  if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
   player.load();
   try {
     var p = player.play();
     if (p !== undefined && typeof p.then === 'function') {
       p.then(function() {
         status.innerHTML = '';
+        // After 2s, check if audio is actually progressing
+        silenceTimer = setTimeout(function() {
+          if (player.currentTime === 0 && playing) {
+            showNativeFallback();
+          }
+        }, 2000);
       }).catch(function() {
         playing = false;
         setPlayBtn(false);
-        status.innerHTML = '';
+        showNativeFallback();
       });
+    } else {
+      // iOS 9 — no Promise, check after 2s if anything is happening
+      silenceTimer = setTimeout(function() {
+        if (player.currentTime === 0 && playing) {
+          showNativeFallback();
+        }
+      }, 2000);
     }
-    // If p is undefined (iOS 9), play() was called synchronously — just continue
   } catch(e) {
     playing = false;
     setPlayBtn(false);
+    showNativeFallback();
   }
 }
 
