@@ -39,11 +39,10 @@ html, body {
   background: #2a2520;
 }
 
-/* ── card (sleeve + record together) ── */
+/* ── card ── */
 #card {
   position: relative;
-  width: 260px;
-  height: 260px;
+  /* sized by JS — no fixed px here */
   will-change: transform, opacity;
 }
 
@@ -52,20 +51,22 @@ html, body {
 #card.in-left   { animation: inLeft   0.26s ease forwards; }
 #card.in-right  { animation: inRight  0.26s ease forwards; }
 
-@keyframes outLeft  { to { transform: translateX(-140%) rotate(-6deg); opacity: 0; } }
-@keyframes outRight { to { transform: translateX(140%)  rotate(6deg);  opacity: 0; } }
-@keyframes inLeft   { from { transform: translateX(140%)  rotate(6deg);  opacity: 0; } to { transform: var(--tilt, rotate(0deg)); opacity: 1; } }
-@keyframes inRight  { from { transform: translateX(-140%) rotate(-6deg); opacity: 0; } to { transform: var(--tilt, rotate(0deg)); opacity: 1; } }
+@keyframes outLeft  { to   { transform: translateX(-140%) rotate(-6deg); opacity: 0; } }
+@keyframes outRight { to   { transform: translateX( 140%) rotate( 6deg); opacity: 0; } }
+@keyframes inLeft   { from { transform: translateX( 140%) rotate( 6deg); opacity: 0; }
+                      to   { transform: var(--tilt, none); opacity: 1; } }
+@keyframes inRight  { from { transform: translateX(-140%) rotate(-6deg); opacity: 0; }
+                      to   { transform: var(--tilt, none); opacity: 1; } }
 
 /* ── vinyl record ── */
 #record {
   position: absolute;
   top: 2%;
+  /* right set by JS in px */
   width: 80%;
   height: 80%;
-  transition: right 0.55s cubic-bezier(.4,0,.2,1);
   border-radius: 50%;
-  /* realistic vinyl: dark with subtle sheen rings */
+  transition: right 0.55s cubic-bezier(.4,0,.2,1);
   background:
     radial-gradient(circle at 35% 30%, rgba(255,255,255,0.07) 0%, transparent 55%),
     radial-gradient(circle at 50% 50%,
@@ -87,43 +88,24 @@ html, body {
   transform: rotate(0deg);
 }
 
-/* groove shimmer — thin bright lines */
+/* groove rings */
 #record::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background:
-    repeating-radial-gradient(
-      circle at 50% 50%,
-      transparent 14%,
-      rgba(255,255,255,0.055) 14.3%,
-      transparent 14.6%,
-      transparent 17.5%,
-      rgba(255,255,255,0.04)  17.8%,
-      transparent 18.1%,
-      transparent 21%,
-      rgba(255,255,255,0.035) 21.3%,
-      transparent 21.6%,
-      transparent 24.5%,
-      rgba(255,255,255,0.03)  24.8%,
-      transparent 25.1%,
-      transparent 28%,
-      rgba(255,255,255,0.03)  28.3%,
-      transparent 28.6%,
-      transparent 32%,
-      rgba(255,255,255,0.025) 32.3%,
-      transparent 32.6%,
-      transparent 36%,
-      rgba(255,255,255,0.025) 36.3%,
-      transparent 36.6%,
-      transparent 40%,
-      rgba(255,255,255,0.02)  40.3%,
-      transparent 40.6%,
-      transparent 44%,
-      rgba(255,255,255,0.02)  44.3%,
-      transparent 44.6%
-    );
+  background: repeating-radial-gradient(
+    circle at 50% 50%,
+    transparent 14%,   rgba(255,255,255,0.055) 14.3%, transparent 14.6%,
+    transparent 17.5%, rgba(255,255,255,0.04)  17.8%, transparent 18.1%,
+    transparent 21%,   rgba(255,255,255,0.035) 21.3%, transparent 21.6%,
+    transparent 24.5%, rgba(255,255,255,0.03)  24.8%, transparent 25.1%,
+    transparent 28%,   rgba(255,255,255,0.03)  28.3%, transparent 28.6%,
+    transparent 32%,   rgba(255,255,255,0.025) 32.3%, transparent 32.6%,
+    transparent 36%,   rgba(255,255,255,0.025) 36.3%, transparent 36.6%,
+    transparent 40%,   rgba(255,255,255,0.02)  40.3%, transparent 40.6%,
+    transparent 44%,   rgba(255,255,255,0.02)  44.3%, transparent 44.6%
+  );
 }
 
 /* centre label */
@@ -137,50 +119,42 @@ html, body {
   background: radial-gradient(circle at 40% 35%,
     #e8c878 0%, #c8a040 30%, #8b6010 65%, #3a2005 100%);
   z-index: 1;
-  box-shadow:
-    0 2px 6px rgba(0,0,0,0.8),
-    inset 0 1px 2px rgba(255,255,255,0.2);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.2);
 }
 
 /* wobble when playing */
 @keyframes wobble {
-  0%   { transform: rotate(var(--r)) translateX(0px)    translateY(0px); }
-  25%  { transform: rotate(var(--r)) translateX(0.6px)  translateY(-0.4px); }
-  50%  { transform: rotate(var(--r)) translateX(-0.5px) translateY(0.5px); }
-  75%  { transform: rotate(var(--r)) translateX(0.4px)  translateY(0.3px); }
-  100% { transform: rotate(var(--r)) translateX(0px)    translateY(0px); }
+  0%   { transform: rotate(var(--r,0deg)) translate(  0px,    0px); }
+  25%  { transform: rotate(var(--r,0deg)) translate( 0.6px, -0.4px); }
+  50%  { transform: rotate(var(--r,0deg)) translate(-0.5px,  0.5px); }
+  75%  { transform: rotate(var(--r,0deg)) translate( 0.4px,  0.3px); }
+  100% { transform: rotate(var(--r,0deg)) translate(  0px,    0px); }
 }
-#record.wobbling {
-  animation: wobble 0.18s linear infinite;
-}
+#record.wobbling { animation: wobble 0.18s linear infinite; }
 
 /* ── album sleeve ── */
 #sleeve {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 84%;
-  height: 84%;
+  top: 0; left: 0;
+  width: 84%; height: 84%;
   border-radius: 4px;
   overflow: hidden;
   z-index: 2;
   background: #1a1a1a;
   box-shadow:
     0 10px 40px rgba(0,0,0,0.9),
-    0 3px 10px rgba(0,0,0,0.7),
+    0 3px  10px rgba(0,0,0,0.7),
     inset 0 0 0 1px rgba(255,255,255,0.05);
 }
 
 #sleeve-img {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   object-fit: cover;
   display: block;
 }
 
 #sleeve-placeholder {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -201,8 +175,7 @@ html, body {
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
+  width: 6px; height: 6px;
   border-radius: 50%;
   background: #3a3530;
   border: 1px solid #504840;
@@ -210,7 +183,6 @@ html, body {
   cursor: pointer;
   flex-shrink: 0;
 }
-
 .dot.active {
   background: #c8a96e;
   border-color: #c8a96e;
@@ -235,9 +207,8 @@ html, body {
   background: #040d04;
   border: 1px solid #162016;
   border-radius: 3px;
-  padding: 2px 8px;
+  padding: 2px 0;
 }
-
 #title-wrap::before,
 #title-wrap::after {
   content: '';
@@ -247,7 +218,7 @@ html, body {
   z-index: 2;
   pointer-events: none;
 }
-#title-wrap::before { left: 0;  background: linear-gradient(to right, #040d04, transparent); }
+#title-wrap::before { left:  0; background: linear-gradient(to right, #040d04, transparent); }
 #title-wrap::after  { right: 0; background: linear-gradient(to left,  #040d04, transparent); }
 
 #track-title {
@@ -258,24 +229,30 @@ html, body {
   white-space: nowrap;
   display: inline-block;
   line-height: 1.6em;
+  padding: 0 8px;
 }
 
 @keyframes marquee {
   0%   { transform: translateX(var(--mstart)); }
-  100% { transform: translateX(var(--mdist)); }
+  100% { transform: translateX(var(--mend)); }
 }
 
-/* controls row: logo | buttons | fullscreen */
+/* controls row */
 #controls-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+#logo-link {
+  flex-shrink: 0;
+  display: block;
+  line-height: 0;
+}
+
 #footer-logo {
   height: 34px;
   width: auto;
-  flex-shrink: 0;
   display: block;
   opacity: 0.85;
 }
@@ -304,7 +281,6 @@ html, body {
   transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
   box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
-
 .ctrl-btn.active {
   background: #2a2010;
   border-color: #c8a96e;
@@ -353,7 +329,9 @@ html, body {
   <div id="controls-bar">
     <div id="title-wrap"><span id="track-title"></span></div>
     <div id="controls-row">
-      <img id="footer-logo" src="logo.png" alt="WAA" onerror="this.style.display='none'">
+      <a id="logo-link" href="#" target="_blank" rel="noopener">
+        <img id="footer-logo" src="logo.png" alt="WAA" onerror="this.style.display='none'">
+      </a>
       <div id="buttons">
         <div class="ctrl-btn" id="prev-btn">&#9664;&#9664;</div>
         <div class="ctrl-btn" id="play-btn">&#9654;</div>
@@ -361,24 +339,25 @@ html, body {
       </div>
       <button id="fullscreen-btn">&#x26F6;</button>
     </div>
-    <div id="version">v2.8</div>
+    <div id="version">v2.9</div>
   </div>
 
 </div>
 <audio id="player" preload="none"></audio>
 
 <script>
-var tracks   = [];
-var idx      = 0;
-var playing  = false;
-var player   = document.getElementById('player');
-var card     = document.getElementById('card');
-var record   = document.getElementById('record');
-var sleeveImg     = document.getElementById('sleeve-img');
-var sleevePH      = document.getElementById('sleeve-placeholder');
-var trackTitleEl  = document.getElementById('track-title');
-var playBtn       = document.getElementById('play-btn');
-var dotsEl        = document.getElementById('track-dots');
+var tracks  = [];
+var idx     = 0;
+var playing = false;
+var player      = document.getElementById('player');
+var card        = document.getElementById('card');
+var record      = document.getElementById('record');
+var sleeveImg   = document.getElementById('sleeve-img');
+var sleevePH    = document.getElementById('sleeve-placeholder');
+var titleEl     = document.getElementById('track-title');
+var playBtn     = document.getElementById('play-btn');
+var dotsEl      = document.getElementById('track-dots');
+var logoLink    = document.getElementById('logo-link');
 
 var tilts = [
   'rotate(-3deg)', 'rotate(2deg)',  'rotate(-5deg)',
@@ -387,55 +366,65 @@ var tilts = [
   'rotate(6deg)',  'rotate(-3deg)'
 ];
 
-// ── card sizing ───────────────────────────────────────────────────────────────
+// ── logo link: only on non-touch devices ──────────────────────────────────────
+if (!('ontouchstart' in window)) {
+  logoLink.href = 'https://waaclub.nz';
+} else {
+  logoLink.removeAttribute('href');
+}
+
+// ── card + record sizing ──────────────────────────────────────────────────────
+
+var cardSize = 260;
 
 function sizeCard() {
   var stage = document.getElementById('stage');
   var w = stage.clientWidth  - 48;
   var h = stage.clientHeight - 16;
-  var size = Math.min(w, h, 340);
-  card.style.width  = size + 'px';
-  card.style.height = size + 'px';
+  cardSize = Math.min(w, h, 480); // raised cap for larger screens
+  card.style.width  = cardSize + 'px';
+  card.style.height = cardSize + 'px';
 }
-window.addEventListener('resize', function() { sizeCard(); if (!playing) recordOut(); else recordIn(); });
+
+function recordOut() {
+  record.style.right = Math.round(cardSize * 0.20) + 'px';
+}
+
+function recordIn() {
+  record.style.right = Math.round(cardSize * -0.18) + 'px';
+}
+
+function sizeAndPosition() {
+  sizeCard();
+  if (playing) recordIn(); else recordOut();
+}
+
+window.addEventListener('resize', sizeAndPosition);
 sizeCard();
-// set initial record position after size is known
 setTimeout(function() { recordOut(); }, 0);
 
 // ── record spin ───────────────────────────────────────────────────────────────
 
 var spinAngle = 0;
-var spinSpeed = 0;
-var spinRAF   = null;
-var lastTS    = null;
+var spinSpeed = 0;   // degrees per 16.67ms frame
+var TARGET_SPEED = 0.18; // ~11 rpm — realistic vinyl
+var spinRAF = null;
+var lastTS  = null;
 
 function spinLoop(ts) {
   if (!lastTS) lastTS = ts;
   var dt = Math.min(ts - lastTS, 64);
   lastTS = ts;
   spinAngle = (spinAngle + spinSpeed * (dt / 16.67)) % 360;
-  // store angle as CSS var for wobble animation to build on
   record.style.setProperty('--r', spinAngle + 'deg');
   if (!record.classList.contains('wobbling')) {
     record.style.transform = 'rotate(' + spinAngle + 'deg)';
   }
-  if (spinSpeed > 0.004) {
+  if (spinSpeed > 0.002) {
     spinRAF = requestAnimationFrame(spinLoop);
   } else {
     spinSpeed = 0; spinRAF = null; lastTS = null;
   }
-}
-
-function recordOut() {
-  // position record hidden behind sleeve — use px based on card size
-  var size = parseInt(card.style.width) || 260;
-  record.style.right = Math.round(size * 0.20) + 'px';
-}
-
-function recordIn() {
-  // position record peeking out right
-  var size = parseInt(card.style.width) || 260;
-  record.style.right = Math.round(size * -0.18) + 'px';
 }
 
 function startSpin() {
@@ -443,7 +432,10 @@ function startSpin() {
   record.classList.add('wobbling');
   if (!spinRAF) { lastTS = null; spinRAF = requestAnimationFrame(spinLoop); }
   (function accel() {
-    if (spinSpeed < 0.45) { spinSpeed = Math.min(spinSpeed * 1.09 + 0.004, 0.45); setTimeout(accel, 16); }
+    if (spinSpeed < TARGET_SPEED) {
+      spinSpeed = Math.min(spinSpeed * 1.08 + 0.002, TARGET_SPEED);
+      setTimeout(accel, 16);
+    }
   })();
 }
 
@@ -451,30 +443,29 @@ function stopSpin() {
   recordOut();
   record.classList.remove('wobbling');
   (function decel() {
-    if (spinSpeed > 0.004) { spinSpeed *= 0.96; setTimeout(decel, 16); }
+    if (spinSpeed > 0.002) { spinSpeed *= 0.95; setTimeout(decel, 16); }
     else spinSpeed = 0;
   })();
 }
 
-// ── marquee ───────────────────────────────────────────────────────────────────
+// ── marquee (R to L, continuous) ─────────────────────────────────────────────
 
 function updateMarquee() {
   var wrap = document.getElementById('title-wrap');
-  var el   = trackTitleEl;
+  var el   = titleEl;
   el.style.animation = 'none';
   el.style.transform = 'translateX(0)';
   void el.offsetWidth;
   requestAnimationFrame(function() {
-    var wrapW = wrap.clientWidth;
-    var textW = el.scrollWidth;
-    // R-to-L: start off the right edge, end past the left edge
-    var startX = wrapW + 10;
-    var endX   = -(textW + 10);
-    var totalDist = startX - endX;
-    var dur = Math.max(4, totalDist / 90);
+    var wrapW  = wrap.clientWidth;
+    var textW  = el.scrollWidth;
+    var startX = wrapW;                  // starts just off right edge
+    var endX   = -(textW + 16);          // ends just past left edge
+    var dist   = startX - endX;
+    var dur    = Math.max(4, dist / 90); // ~90px per second
     el.style.setProperty('--mstart', startX + 'px');
-    el.style.setProperty('--mdist',  endX + 'px');
-    el.style.animation = 'marquee ' + dur + 's linear 0.3s infinite';
+    el.style.setProperty('--mend',   endX   + 'px');
+    el.style.animation = 'marquee ' + dur + 's linear 0.5s infinite';
   });
 }
 
@@ -502,7 +493,7 @@ function setSleeveImage(src) {
   if (src) {
     sleeveImg.src = src;
     sleeveImg.style.display = 'block';
-    sleevePH.style.display = 'none';
+    sleevePH.style.display  = 'none';
   } else {
     sleeveImg.style.display = 'none';
     sleevePH.style.display  = 'flex';
@@ -520,20 +511,34 @@ function applyTilt() {
 function showTrack(i, dir) {
   idx = ((i % tracks.length) + tracks.length) % tracks.length;
   var t = tracks[idx];
-  trackTitleEl.textContent = t.title;
+  titleEl.textContent = t.title;
   player.src = t.audio;
   updateDots();
   updateMarquee();
 
   if (dir) {
-    // slide whole card (sleeve + record) out together
-    card.className = dir === 'next' ? 'out-left' : 'out-right';
-    // snap record hidden immediately (no transition) so it arrives hidden
+    // 1. slide card out (record snaps to hidden pos instantly, no transition)
     record.style.transition = 'none';
     recordOut();
+    card.className = dir === 'next' ? 'out-left' : 'out-right';
+
     setTimeout(function() {
+      // 2. re-enable record transition and set tilt while card is off-screen
       record.style.transition = '';
       applyTilt();
+
+      // 3. preload image then slide card in
+      function slideIn() {
+        setSleeveImage(t.image || '');
+        card.className = dir === 'next' ? 'in-left' : 'in-right';
+        setTimeout(function() {
+          card.className = '';
+          applyTilt();
+          // if still playing, slide record back out
+          if (playing) recordIn();
+        }, 280);
+      }
+
       if (t.image) {
         var img = new Image();
         img.onload  = slideIn;
@@ -542,17 +547,12 @@ function showTrack(i, dir) {
       } else {
         slideIn();
       }
-      function slideIn() {
-        setSleeveImage(t.image || '');
-        card.className = dir === 'next' ? 'in-left' : 'in-right';
-        setTimeout(function() { card.className = ''; applyTilt(); }, 280);
-      }
-    }, 240);
+    }, 260);
+
   } else {
     card.className = '';
     setSleeveImage(t.image || '');
     applyTilt();
-    // snap record to correct position without transition
     record.style.transition = 'none';
     recordOut();
     setTimeout(function() { record.style.transition = ''; }, 50);
@@ -584,11 +584,9 @@ function playTrack(i, dir) {
 player.addEventListener('ended', function() {
   if (playing) playTrack(idx + 1, 'next');
 });
-
 player.addEventListener('pause', function() {
   if (!playing) stopSpin();
 });
-
 player.addEventListener('play', function() {
   if (playing) startSpin();
 });
@@ -627,7 +625,7 @@ var fsBtn = document.getElementById('fullscreen-btn');
 
 fsBtn.addEventListener('click', function() {
   var el = document.documentElement;
-  if (!document.fullscreenElement) {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
     (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen).call(el);
   } else {
     (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen).call(document);
@@ -635,7 +633,8 @@ fsBtn.addEventListener('click', function() {
 });
 
 function onFSChange() {
-  fsBtn.innerHTML = (document.fullscreenElement || document.webkitFullscreenElement) ? '&#x2715;' : '&#x26F6;';
+  fsBtn.innerHTML = (document.fullscreenElement || document.webkitFullscreenElement)
+    ? '&#x2715;' : '&#x26F6;';
 }
 document.addEventListener('fullscreenchange',       onFSChange);
 document.addEventListener('webkitfullscreenchange', onFSChange);

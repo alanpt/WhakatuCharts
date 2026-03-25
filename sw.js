@@ -1,4 +1,4 @@
-const CACHE = 'whakatu-v4';
+const CACHE = 'whakatu-v5';
 const STATIC = ['./', 'index.html', 'manifest.json', 'logo.png', 'tracks.json'];
 
 self.addEventListener('install', e => {
