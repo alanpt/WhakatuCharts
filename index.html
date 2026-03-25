@@ -66,7 +66,7 @@ html, body {
   width: 80%;
   height: 80%;
   border-radius: 50%;
-  transition: right 0.55s cubic-bezier(.4,0,.2,1);
+  transition: right 0.28s cubic-bezier(.4,0,.2,1);
   background:
     radial-gradient(circle at 35% 30%, rgba(255,255,255,0.07) 0%, transparent 55%),
     radial-gradient(circle at 50% 50%,
@@ -339,7 +339,7 @@ html, body {
       </div>
       <button id="fullscreen-btn">&#x26F6;</button>
     </div>
-    <div id="version">v2.9</div>
+    <div id="version">v3.1</div>
   </div>
 
 </div>
@@ -407,7 +407,7 @@ setTimeout(function() { recordOut(); }, 0);
 
 var spinAngle = 0;
 var spinSpeed = 0;   // degrees per 16.67ms frame
-var TARGET_SPEED = 0.18; // ~11 rpm — realistic vinyl
+var TARGET_SPEED = 0.04; // ~2.5 rpm — very slow, clearly visible
 var spinRAF = null;
 var lastTS  = null;
 
@@ -428,15 +428,21 @@ function spinLoop(ts) {
 }
 
 function startSpin() {
-  recordIn();
-  record.classList.add('wobbling');
-  if (!spinRAF) { lastTS = null; spinRAF = requestAnimationFrame(spinLoop); }
-  (function accel() {
-    if (spinSpeed < TARGET_SPEED) {
-      spinSpeed = Math.min(spinSpeed * 1.08 + 0.002, TARGET_SPEED);
-      setTimeout(accel, 16);
-    }
-  })();
+  // re-enable transition, then wait one tick so showTrack's
+  // transition:none + recordOut() snap has already painted
+  // before we slide the record back in
+  record.style.transition = '';
+  setTimeout(function() {
+    recordIn();
+    record.classList.add('wobbling');
+    if (!spinRAF) { lastTS = null; spinRAF = requestAnimationFrame(spinLoop); }
+    (function accel() {
+      if (spinSpeed < TARGET_SPEED) {
+        spinSpeed = Math.min(spinSpeed * 1.08 + 0.002, TARGET_SPEED);
+        setTimeout(accel, 16);
+      }
+    })();
+  }, 30);
 }
 
 function stopSpin() {
