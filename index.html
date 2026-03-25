@@ -63,34 +63,67 @@ html, body {
   top: 2%;
   width: 80%;
   height: 80%;
-  transition: right 0.6s cubic-bezier(.4,0,.2,1);
+  transition: right 0.55s cubic-bezier(.4,0,.2,1);
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%,
-    #111 0%, #111 13%,
-    #555 13.5%, #111 15%,
-    #444 18%, #111 21%,
-    #444 25%, #111 29%,
-    #444 33%, #111 38%,
-    #444 43%, #111 48%,
-    #333 50%
-  );
-  box-shadow: 0 6px 28px rgba(0,0,0,0.85);
+  /* realistic vinyl: dark with subtle sheen rings */
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255,255,255,0.07) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%,
+      #0a0a0a  0%,  #0a0a0a  12%,
+      #2a2a2a  12.5%, #0d0d0d 14%,
+      #222     16%,  #0a0a0a 17.5%,
+      #1e1e1e  20%,  #080808 22%,
+      #1c1c1c  25%,  #080808 27%,
+      #1a1a1a  30%,  #080808 32%,
+      #181818  35%,  #060606 38%,
+      #161616  42%,  #060606 45%,
+      #141414  48%,  #0a0a0a 50%
+    );
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.9),
+    0 2px 6px  rgba(0,0,0,0.7),
+    inset 0 1px 2px rgba(255,255,255,0.04);
   will-change: transform;
   transform: rotate(0deg);
 }
 
-/* grooves */
+/* groove shimmer — thin bright lines */
 #record::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: repeating-conic-gradient(
-    rgba(255,255,255,0.07) 0deg,
-    rgba(0,0,0,0) 1.5deg,
-    rgba(0,0,0,0) 3deg,
-    rgba(255,255,255,0.07) 4.5deg
-  );
+  background:
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      transparent 14%,
+      rgba(255,255,255,0.055) 14.3%,
+      transparent 14.6%,
+      transparent 17.5%,
+      rgba(255,255,255,0.04)  17.8%,
+      transparent 18.1%,
+      transparent 21%,
+      rgba(255,255,255,0.035) 21.3%,
+      transparent 21.6%,
+      transparent 24.5%,
+      rgba(255,255,255,0.03)  24.8%,
+      transparent 25.1%,
+      transparent 28%,
+      rgba(255,255,255,0.03)  28.3%,
+      transparent 28.6%,
+      transparent 32%,
+      rgba(255,255,255,0.025) 32.3%,
+      transparent 32.6%,
+      transparent 36%,
+      rgba(255,255,255,0.025) 36.3%,
+      transparent 36.6%,
+      transparent 40%,
+      rgba(255,255,255,0.02)  40.3%,
+      transparent 40.6%,
+      transparent 44%,
+      rgba(255,255,255,0.02)  44.3%,
+      transparent 44.6%
+    );
 }
 
 /* centre label */
@@ -98,12 +131,27 @@ html, body {
   content: '';
   position: absolute;
   top: 50%; left: 50%;
-  width: 26%; height: 26%;
+  width: 28%; height: 28%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle, #d4b06a 0%, #8b6914 55%, #4a3006 100%);
+  background: radial-gradient(circle at 40% 35%,
+    #e8c878 0%, #c8a040 30%, #8b6010 65%, #3a2005 100%);
   z-index: 1;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.8),
+    inset 0 1px 2px rgba(255,255,255,0.2);
+}
+
+/* wobble when playing */
+@keyframes wobble {
+  0%   { transform: rotate(var(--r)) translateX(0px)    translateY(0px); }
+  25%  { transform: rotate(var(--r)) translateX(0.6px)  translateY(-0.4px); }
+  50%  { transform: rotate(var(--r)) translateX(-0.5px) translateY(0.5px); }
+  75%  { transform: rotate(var(--r)) translateX(0.4px)  translateY(0.3px); }
+  100% { transform: rotate(var(--r)) translateX(0px)    translateY(0px); }
+}
+#record.wobbling {
+  animation: wobble 0.18s linear infinite;
 }
 
 /* ── album sleeve ── */
@@ -213,8 +261,8 @@ html, body {
 }
 
 @keyframes marquee {
-  0%          { transform: translateX(100%); }
-  100%        { transform: translateX(var(--mdist)); }
+  0%   { transform: translateX(var(--mstart)); }
+  100% { transform: translateX(var(--mdist)); }
 }
 
 /* controls row: logo | buttons | fullscreen */
@@ -313,7 +361,7 @@ html, body {
       </div>
       <button id="fullscreen-btn">&#x26F6;</button>
     </div>
-    <div id="version">v2.7</div>
+    <div id="version">v2.8</div>
   </div>
 
 </div>
@@ -366,7 +414,11 @@ function spinLoop(ts) {
   var dt = Math.min(ts - lastTS, 64);
   lastTS = ts;
   spinAngle = (spinAngle + spinSpeed * (dt / 16.67)) % 360;
-  record.style.transform = 'rotate(' + spinAngle + 'deg)';
+  // store angle as CSS var for wobble animation to build on
+  record.style.setProperty('--r', spinAngle + 'deg');
+  if (!record.classList.contains('wobbling')) {
+    record.style.transform = 'rotate(' + spinAngle + 'deg)';
+  }
   if (spinSpeed > 0.004) {
     spinRAF = requestAnimationFrame(spinLoop);
   } else {
@@ -388,6 +440,7 @@ function recordIn() {
 
 function startSpin() {
   recordIn();
+  record.classList.add('wobbling');
   if (!spinRAF) { lastTS = null; spinRAF = requestAnimationFrame(spinLoop); }
   (function accel() {
     if (spinSpeed < 0.45) { spinSpeed = Math.min(spinSpeed * 1.09 + 0.004, 0.45); setTimeout(accel, 16); }
@@ -396,6 +449,7 @@ function startSpin() {
 
 function stopSpin() {
   recordOut();
+  record.classList.remove('wobbling');
   (function decel() {
     if (spinSpeed > 0.004) { spinSpeed *= 0.96; setTimeout(decel, 16); }
     else spinSpeed = 0;
@@ -407,18 +461,20 @@ function stopSpin() {
 function updateMarquee() {
   var wrap = document.getElementById('title-wrap');
   var el   = trackTitleEl;
-  // force reflow to restart animation
   el.style.animation = 'none';
   el.style.transform = 'translateX(0)';
-  void el.offsetWidth; // trigger reflow
+  void el.offsetWidth;
   requestAnimationFrame(function() {
     var wrapW = wrap.clientWidth;
     var textW = el.scrollWidth;
-    // always scroll — start off right edge, scroll to past left edge
-    var totalDist = wrapW + textW;
-    var dur = Math.max(5, totalDist / 80); // px per second
-    el.style.setProperty('--mdist', '-' + (textW + 20) + 'px');
-    el.style.animation = 'marquee ' + dur + 's linear 0.5s infinite';
+    // R-to-L: start off the right edge, end past the left edge
+    var startX = wrapW + 10;
+    var endX   = -(textW + 10);
+    var totalDist = startX - endX;
+    var dur = Math.max(4, totalDist / 90);
+    el.style.setProperty('--mstart', startX + 'px');
+    el.style.setProperty('--mdist',  endX + 'px');
+    el.style.animation = 'marquee ' + dur + 's linear 0.3s infinite';
   });
 }
 
