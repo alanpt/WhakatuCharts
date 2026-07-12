@@ -10,7 +10,6 @@
 <title>Whakatu Listening Station</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 html, body {
   width: 100%;
   height: 100%;
@@ -18,14 +17,12 @@ html, body {
   overflow: hidden;
   touch-action: none;
 }
-
 #app {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
 }
-
 /* ── stage ── */
 #stage {
   flex: 1;
@@ -38,26 +35,22 @@ html, body {
   padding: 12px 20px 4px;
   background: #2a2520;
 }
-
 /* ── card ── */
 #card {
   position: relative;
   /* sized by JS — no fixed px here */
   will-change: transform, opacity;
 }
-
-#card.out-left  { animation: outLeft  0.26s ease forwards; }
+#card.out-left { animation: outLeft 0.26s ease forwards; }
 #card.out-right { animation: outRight 0.26s ease forwards; }
-#card.in-left   { animation: inLeft   0.26s ease forwards; }
-#card.in-right  { animation: inRight  0.26s ease forwards; }
-
-@keyframes outLeft  { to   { transform: translateX(-140%) rotate(-6deg); opacity: 0; } }
-@keyframes outRight { to   { transform: translateX( 140%) rotate( 6deg); opacity: 0; } }
-@keyframes inLeft   { from { transform: translateX( 140%) rotate( 6deg); opacity: 0; }
-                      to   { transform: var(--tilt, none); opacity: 1; } }
-@keyframes inRight  { from { transform: translateX(-140%) rotate(-6deg); opacity: 0; }
-                      to   { transform: var(--tilt, none); opacity: 1; } }
-
+#card.in-left { animation: inLeft 0.26s ease forwards; }
+#card.in-right { animation: inRight 0.26s ease forwards; }
+@keyframes outLeft { to { transform: translateX(-140%) rotate(-6deg); opacity: 0; } }
+@keyframes outRight { to { transform: translateX( 140%) rotate( 6deg); opacity: 0; } }
+@keyframes inLeft { from { transform: translateX( 140%) rotate( 6deg); opacity: 0; }
+  to { transform: var(--tilt, none); opacity: 1; } }
+@keyframes inRight { from { transform: translateX(-140%) rotate(-6deg); opacity: 0; }
+  to { transform: var(--tilt, none); opacity: 1; } }
 /* ── vinyl record ── */
 #record {
   position: absolute;
@@ -70,24 +63,23 @@ html, body {
   background:
     radial-gradient(circle at 35% 30%, rgba(255,255,255,0.07) 0%, transparent 55%),
     radial-gradient(circle at 50% 50%,
-      #0a0a0a  0%,  #0a0a0a  12%,
-      #2a2a2a  12.5%, #0d0d0d 14%,
-      #222     16%,  #0a0a0a 17.5%,
-      #1e1e1e  20%,  #080808 22%,
-      #1c1c1c  25%,  #080808 27%,
-      #1a1a1a  30%,  #080808 32%,
-      #181818  35%,  #060606 38%,
-      #161616  42%,  #060606 45%,
-      #141414  48%,  #0a0a0a 50%
+      #0a0a0a 0%, #0a0a0a 12%,
+      #2a2a2a 12.5%, #0d0d0d 14%,
+      #222 16%, #0a0a0a 17.5%,
+      #1e1e1e 20%, #080808 22%,
+      #1c1c1c 25%, #080808 27%,
+      #1a1a1a 30%, #080808 32%,
+      #181818 35%, #060606 38%,
+      #161616 42%, #060606 45%,
+      #141414 48%, #0a0a0a 50%
     );
   box-shadow:
     0 8px 32px rgba(0,0,0,0.9),
-    0 2px 6px  rgba(0,0,0,0.7),
+    0 2px 6px rgba(0,0,0,0.7),
     inset 0 1px 2px rgba(255,255,255,0.04);
   will-change: transform;
   transform: rotate(0deg);
 }
-
 /* groove rings */
 #record::after {
   content: '';
@@ -96,18 +88,17 @@ html, body {
   border-radius: 50%;
   background: repeating-radial-gradient(
     circle at 50% 50%,
-    transparent 14%,   rgba(255,255,255,0.055) 14.3%, transparent 14.6%,
-    transparent 17.5%, rgba(255,255,255,0.04)  17.8%, transparent 18.1%,
-    transparent 21%,   rgba(255,255,255,0.035) 21.3%, transparent 21.6%,
-    transparent 24.5%, rgba(255,255,255,0.03)  24.8%, transparent 25.1%,
-    transparent 28%,   rgba(255,255,255,0.03)  28.3%, transparent 28.6%,
-    transparent 32%,   rgba(255,255,255,0.025) 32.3%, transparent 32.6%,
-    transparent 36%,   rgba(255,255,255,0.025) 36.3%, transparent 36.6%,
-    transparent 40%,   rgba(255,255,255,0.02)  40.3%, transparent 40.6%,
-    transparent 44%,   rgba(255,255,255,0.02)  44.3%, transparent 44.6%
+    transparent 14%, rgba(255,255,255,0.055) 14.3%, transparent 14.6%,
+    transparent 17.5%, rgba(255,255,255,0.04) 17.8%, transparent 18.1%,
+    transparent 21%, rgba(255,255,255,0.035) 21.3%, transparent 21.6%,
+    transparent 24.5%, rgba(255,255,255,0.03) 24.8%, transparent 25.1%,
+    transparent 28%, rgba(255,255,255,0.03) 28.3%, transparent 28.6%,
+    transparent 32%, rgba(255,255,255,0.025) 32.3%, transparent 32.6%,
+    transparent 36%, rgba(255,255,255,0.025) 36.3%, transparent 36.6%,
+    transparent 40%, rgba(255,255,255,0.02) 40.3%, transparent 40.6%,
+    transparent 44%, rgba(255,255,255,0.02) 44.3%, transparent 44.6%
   );
 }
-
 /* centre label */
 #record::before {
   content: '';
@@ -121,17 +112,15 @@ html, body {
   z-index: 1;
   box-shadow: 0 2px 6px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.2);
 }
-
 /* wobble when playing */
 @keyframes wobble {
-  0%   { transform: rotate(var(--r,0deg)) translate(  0px,    0px); }
-  25%  { transform: rotate(var(--r,0deg)) translate( 0.6px, -0.4px); }
-  50%  { transform: rotate(var(--r,0deg)) translate(-0.5px,  0.5px); }
-  75%  { transform: rotate(var(--r,0deg)) translate( 0.4px,  0.3px); }
-  100% { transform: rotate(var(--r,0deg)) translate(  0px,    0px); }
+  0% { transform: rotate(var(--r,0deg)) translate( 0px, 0px); }
+  25% { transform: rotate(var(--r,0deg)) translate( 0.6px, -0.4px); }
+  50% { transform: rotate(var(--r,0deg)) translate(-0.5px, 0.5px); }
+  75% { transform: rotate(var(--r,0deg)) translate( 0.4px, 0.3px); }
+  100% { transform: rotate(var(--r,0deg)) translate( 0px, 0px); }
 }
 #record.wobbling { animation: wobble 0.18s linear infinite; }
-
 /* ── album sleeve ── */
 #sleeve {
   position: absolute;
@@ -143,16 +132,14 @@ html, body {
   background: #1a1a1a;
   box-shadow:
     0 10px 40px rgba(0,0,0,0.9),
-    0 3px  10px rgba(0,0,0,0.7),
+    0 3px 10px rgba(0,0,0,0.7),
     inset 0 0 0 1px rgba(255,255,255,0.05);
 }
-
 #sleeve-img {
   width: 100%; height: 100%;
   object-fit: cover;
   display: block;
 }
-
 #sleeve-placeholder {
   width: 100%; height: 100%;
   display: flex;
@@ -162,7 +149,6 @@ html, body {
   color: #2a2a2a;
   background: #141414;
 }
-
 /* ── dots ── */
 #track-dots {
   flex-shrink: 0;
@@ -173,7 +159,6 @@ html, body {
   padding: 5px 16px;
   min-height: 18px;
 }
-
 .dot {
   width: 6px; height: 6px;
   border-radius: 50%;
@@ -188,7 +173,6 @@ html, body {
   border-color: #c8a96e;
   transform: scale(1.4);
 }
-
 /* ── controls bar ── */
 #controls-bar {
   flex-shrink: 0;
@@ -196,7 +180,6 @@ html, body {
   border-top: 1px solid #302820;
   padding: 7px 10px 9px;
 }
-
 /* LCD title */
 #title-wrap {
   width: 100%;
@@ -218,9 +201,8 @@ html, body {
   z-index: 2;
   pointer-events: none;
 }
-#title-wrap::before { left:  0; background: linear-gradient(to right, #040d04, transparent); }
-#title-wrap::after  { right: 0; background: linear-gradient(to left,  #040d04, transparent); }
-
+#title-wrap::before { left: 0; background: linear-gradient(to right, #040d04, transparent); }
+#title-wrap::after { right: 0; background: linear-gradient(to left, #040d04, transparent); }
 #track-title {
   font-family: 'Share Tech Mono', 'Courier New', monospace;
   font-size: 14px;
@@ -231,32 +213,27 @@ html, body {
   line-height: 1.6em;
   padding: 0 8px;
 }
-
 @keyframes marquee {
-  0%   { transform: translateX(var(--mstart)); }
+  0% { transform: translateX(var(--mstart)); }
   100% { transform: translateX(var(--mend)); }
 }
-
 /* controls row */
 #controls-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-
 #logo-link {
   flex-shrink: 0;
   display: block;
   line-height: 0;
 }
-
 #footer-logo {
   height: 34px;
   width: auto;
   display: block;
   opacity: 0.85;
 }
-
 #buttons {
   flex: 1;
   display: flex;
@@ -264,7 +241,6 @@ html, body {
   justify-content: center;
   gap: 8px;
 }
-
 .ctrl-btn {
   background: #1a1714;
   border: 2px solid #3a3530;
@@ -286,7 +262,6 @@ html, body {
   border-color: #c8a96e;
   box-shadow: 0 0 10px rgba(200,169,110,0.3);
 }
-
 #fullscreen-btn {
   background: none;
   border: none;
@@ -301,7 +276,6 @@ html, body {
   transition: color 0.15s;
 }
 #fullscreen-btn:active { color: #c8a96e; }
-
 #version {
   font-size: 8px;
   color: #1c1814;
@@ -313,7 +287,6 @@ html, body {
 </head>
 <body>
 <div id="app">
-
   <div id="stage">
     <div id="card">
       <div id="record"></div>
@@ -323,9 +296,7 @@ html, body {
       </div>
     </div>
   </div>
-
   <div id="track-dots"></div>
-
   <div id="controls-bar">
     <div id="title-wrap"><span id="track-title"></span></div>
     <div id="controls-row">
@@ -341,29 +312,26 @@ html, body {
     </div>
     <div id="version">v3.1</div>
   </div>
-
 </div>
 <audio id="player" preload="none"></audio>
-
 <script>
-var tracks  = [];
-var idx     = 0;
+var tracks = [];
+var idx = 0;
 var playing = false;
-var player      = document.getElementById('player');
-var card        = document.getElementById('card');
-var record      = document.getElementById('record');
-var sleeveImg   = document.getElementById('sleeve-img');
-var sleevePH    = document.getElementById('sleeve-placeholder');
-var titleEl     = document.getElementById('track-title');
-var playBtn     = document.getElementById('play-btn');
-var dotsEl      = document.getElementById('track-dots');
-var logoLink    = document.getElementById('logo-link');
-
+var player = document.getElementById('player');
+var card = document.getElementById('card');
+var record = document.getElementById('record');
+var sleeveImg = document.getElementById('sleeve-img');
+var sleevePH = document.getElementById('sleeve-placeholder');
+var titleEl = document.getElementById('track-title');
+var playBtn = document.getElementById('play-btn');
+var dotsEl = document.getElementById('track-dots');
+var logoLink = document.getElementById('logo-link');
 var tilts = [
-  'rotate(-3deg)', 'rotate(2deg)',  'rotate(-5deg)',
-  'rotate(4deg)',  'rotate(-2deg)', 'rotate(5deg)',
-  'rotate(-4deg)', 'rotate(3deg)',  'rotate(-1deg)',
-  'rotate(6deg)',  'rotate(-3deg)'
+  'rotate(-3deg)', 'rotate(2deg)', 'rotate(-5deg)',
+  'rotate(4deg)', 'rotate(-2deg)', 'rotate(5deg)',
+  'rotate(-4deg)', 'rotate(3deg)', 'rotate(-1deg)',
+  'rotate(6deg)', 'rotate(-3deg)'
 ];
 
 // ── logo link: only on non-touch devices ──────────────────────────────────────
@@ -374,43 +342,35 @@ if (!('ontouchstart' in window)) {
 }
 
 // ── card + record sizing ──────────────────────────────────────────────────────
-
 var cardSize = 260;
-
 function sizeCard() {
   var stage = document.getElementById('stage');
-  var w = stage.clientWidth  - 48;
+  var w = stage.clientWidth - 48;
   var h = stage.clientHeight - 16;
   cardSize = Math.min(w, h, 480); // raised cap for larger screens
-  card.style.width  = cardSize + 'px';
+  card.style.width = cardSize + 'px';
   card.style.height = cardSize + 'px';
 }
-
 function recordOut() {
   record.style.right = Math.round(cardSize * 0.20) + 'px';
 }
-
 function recordIn() {
   record.style.right = Math.round(cardSize * -0.18) + 'px';
 }
-
 function sizeAndPosition() {
   sizeCard();
   if (playing) recordIn(); else recordOut();
 }
-
 window.addEventListener('resize', sizeAndPosition);
 sizeCard();
 setTimeout(function() { recordOut(); }, 0);
 
 // ── record spin ───────────────────────────────────────────────────────────────
-
 var spinAngle = 0;
-var spinSpeed = 0;   // degrees per 16.67ms frame
+var spinSpeed = 0; // degrees per 16.67ms frame
 var TARGET_SPEED = 0.04; // ~2.5 rpm — very slow, clearly visible
 var spinRAF = null;
-var lastTS  = null;
-
+var lastTS = null;
 function spinLoop(ts) {
   if (!lastTS) lastTS = ts;
   var dt = Math.min(ts - lastTS, 64);
@@ -426,7 +386,6 @@ function spinLoop(ts) {
     spinSpeed = 0; spinRAF = null; lastTS = null;
   }
 }
-
 function startSpin() {
   // re-enable transition, then wait one tick so showTrack's
   // transition:none + recordOut() snap has already painted
@@ -444,7 +403,6 @@ function startSpin() {
     })();
   }, 30);
 }
-
 function stopSpin() {
   recordOut();
   record.classList.remove('wobbling');
@@ -455,28 +413,26 @@ function stopSpin() {
 }
 
 // ── marquee (R to L, continuous) ─────────────────────────────────────────────
-
 function updateMarquee() {
   var wrap = document.getElementById('title-wrap');
-  var el   = titleEl;
+  var el = titleEl;
   el.style.animation = 'none';
   el.style.transform = 'translateX(0)';
   void el.offsetWidth;
   requestAnimationFrame(function() {
-    var wrapW  = wrap.clientWidth;
-    var textW  = el.scrollWidth;
-    var startX = wrapW;                  // starts just off right edge
-    var endX   = -(textW + 16);          // ends just past left edge
-    var dist   = startX - endX;
-    var dur    = Math.max(4, dist / 90); // ~90px per second
+    var wrapW = wrap.clientWidth;
+    var textW = el.scrollWidth;
+    var startX = wrapW; // starts just off right edge
+    var endX = -(textW + 16); // ends just past left edge
+    var dist = startX - endX;
+    var dur = Math.max(4, dist / 90); // ~90px per second
     el.style.setProperty('--mstart', startX + 'px');
-    el.style.setProperty('--mend',   endX   + 'px');
+    el.style.setProperty('--mend', endX + 'px');
     el.style.animation = 'marquee ' + dur + 's linear 0.5s infinite';
   });
 }
 
 // ── dots ──────────────────────────────────────────────────────────────────────
-
 function buildDots() {
   dotsEl.innerHTML = '';
   tracks.forEach(function(_, i) {
@@ -486,7 +442,6 @@ function buildDots() {
     dotsEl.appendChild(d);
   });
 }
-
 function updateDots() {
   dotsEl.querySelectorAll('.dot').forEach(function(d, i) {
     d.className = 'dot' + (i === idx ? ' active' : '');
@@ -494,26 +449,23 @@ function updateDots() {
 }
 
 // ── sleeve image ──────────────────────────────────────────────────────────────
-
 function setSleeveImage(src) {
   if (src) {
     sleeveImg.src = src;
     sleeveImg.style.display = 'block';
-    sleevePH.style.display  = 'none';
+    sleevePH.style.display = 'none';
   } else {
     sleeveImg.style.display = 'none';
-    sleevePH.style.display  = 'flex';
+    sleevePH.style.display = 'flex';
   }
 }
 
 // ── show track ────────────────────────────────────────────────────────────────
-
 function applyTilt() {
   var t = tilts[idx % tilts.length];
   card.style.setProperty('--tilt', t);
   card.style.transform = t;
 }
-
 function showTrack(i, dir) {
   idx = ((i % tracks.length) + tracks.length) % tracks.length;
   var t = tracks[idx];
@@ -547,14 +499,13 @@ function showTrack(i, dir) {
 
       if (t.image) {
         var img = new Image();
-        img.onload  = slideIn;
+        img.onload = slideIn;
         img.onerror = slideIn;
         img.src = t.image;
       } else {
         slideIn();
       }
     }, 260);
-
   } else {
     card.className = '';
     setSleeveImage(t.image || '');
@@ -566,15 +517,12 @@ function showTrack(i, dir) {
 }
 
 // ── playback ──────────────────────────────────────────────────────────────────
-
 function setPlayBtn(p) {
   playBtn.innerHTML = p ? '&#9646;&#9646;' : '&#9654;';
 }
-
 function haptic(ms) {
   try { if (navigator.vibrate) navigator.vibrate(ms); } catch(e) {}
 }
-
 function playTrack(i, dir) {
   showTrack(i, dir);
   playing = true;
@@ -586,7 +534,6 @@ function playTrack(i, dir) {
     stopSpin();
   });
 }
-
 player.addEventListener('ended', function() {
   if (playing) playTrack(idx + 1, 'next');
 });
@@ -598,19 +545,16 @@ player.addEventListener('play', function() {
 });
 
 // ── buttons ───────────────────────────────────────────────────────────────────
-
 function flash(id) {
   var el = document.getElementById(id);
   el.classList.add('active');
   setTimeout(function() { el.classList.remove('active'); }, 180);
 }
-
 document.getElementById('prev-btn').addEventListener('click', function() {
   flash('prev-btn'); haptic(30);
   if (player.currentTime > 3) { player.currentTime = 0; if (playing) player.play(); }
   else playTrack(idx - 1, 'prev');
 });
-
 playBtn.addEventListener('click', function() {
   flash('play-btn'); haptic(40);
   if (playing) {
@@ -619,16 +563,13 @@ playBtn.addEventListener('click', function() {
     playTrack(idx, null);
   }
 });
-
 document.getElementById('next-btn').addEventListener('click', function() {
   flash('next-btn'); haptic(30);
   playTrack(idx + 1, 'next');
 });
 
 // ── fullscreen ────────────────────────────────────────────────────────────────
-
 var fsBtn = document.getElementById('fullscreen-btn');
-
 fsBtn.addEventListener('click', function() {
   var el = document.documentElement;
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -637,30 +578,25 @@ fsBtn.addEventListener('click', function() {
     (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen).call(document);
   }
 });
-
 function onFSChange() {
   fsBtn.innerHTML = (document.fullscreenElement || document.webkitFullscreenElement)
     ? '&#x2715;' : '&#x26F6;';
 }
-document.addEventListener('fullscreenchange',       onFSChange);
+document.addEventListener('fullscreenchange', onFSChange);
 document.addEventListener('webkitfullscreenchange', onFSChange);
-document.addEventListener('mozfullscreenchange',    onFSChange);
+document.addEventListener('mozfullscreenchange', onFSChange);
 
 // ── swipe ─────────────────────────────────────────────────────────────────────
-
 var sx = 0, sy = 0, sActive = false;
-
 document.addEventListener('touchstart', function(e) {
   sx = e.touches[0].clientX;
   sy = e.touches[0].clientY;
   sActive = true;
 }, { passive: true });
-
 document.addEventListener('touchmove', function(e) {
   if (!sActive) return;
   if (Math.abs(e.touches[0].clientY - sy) > Math.abs(e.touches[0].clientX - sx)) sActive = false;
 }, { passive: true });
-
 document.addEventListener('touchend', function(e) {
   if (!sActive) return;
   sActive = false;
@@ -676,8 +612,48 @@ document.addEventListener('touchend', function(e) {
   }
 }, { passive: true });
 
-// ── load tracks ───────────────────────────────────────────────────────────────
+// ── keyboard / joystick (arrow-key emulating) ──────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  // ignore if focus is in a text field (not relevant here, but safe practice)
+  var tag = (document.activeElement && document.activeElement.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
+  // ignore auto-repeat so holding the D-pad doesn't spam next/prev
+  if (e.repeat) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' ||
+        e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter') {
+      e.preventDefault();
+    }
+    return;
+  }
+
+  switch (e.key) {
+    case 'ArrowRight':
+      e.preventDefault();
+      flash('next-btn'); haptic(30);
+      playTrack(idx + 1, 'next');
+      break;
+    case 'ArrowLeft':
+      e.preventDefault();
+      flash('prev-btn'); haptic(30);
+      if (player.currentTime > 3) { player.currentTime = 0; if (playing) player.play(); }
+      else playTrack(idx - 1, 'prev');
+      break;
+    case ' ':
+    case 'Spacebar':
+    case 'Enter':
+      e.preventDefault();
+      flash('play-btn'); haptic(40);
+      if (playing) {
+        playing = false; player.pause(); setPlayBtn(false); stopSpin();
+      } else {
+        playTrack(idx, null);
+      }
+      break;
+  }
+});
+
+// ── load tracks ───────────────────────────────────────────────────────────────
 var xhr = new XMLHttpRequest();
 xhr.open('GET', 'tracks.json?v=' + Date.now(), true);
 xhr.onload = function() {
@@ -689,7 +665,6 @@ xhr.onload = function() {
 xhr.send();
 
 // ── service worker ────────────────────────────────────────────────────────────
-
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(function() {});
 }
