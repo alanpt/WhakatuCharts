@@ -612,6 +612,14 @@ document.addEventListener('touchend', function(e) {
   }
 }, { passive: true });
 
+// ── force focus so keydown works inside kiosk/iframe wrappers (e.g. FullPageOS) ─
+document.body.tabIndex = -1;
+window.addEventListener('load', function() {
+  window.focus();
+  document.body.focus();
+});
+document.addEventListener('click', function() { window.focus(); });
+
 // ── keyboard / joystick (arrow-key emulating) ──────────────────────────────────
 document.addEventListener('keydown', function(e) {
   // ignore if focus is in a text field (not relevant here, but safe practice)
@@ -652,6 +660,55 @@ document.addEventListener('keydown', function(e) {
       break;
   }
 });
+
+// ── gamepad / raw joystick polling (for sticks that DON'T emulate a keyboard) ──
+// Many cheap USB joysticks register as a raw HID gamepad rather than sending
+// key events. The browser only exposes those through the Gamepad API, which
+// must be polled every frame (there's no 'joystick pressed' event).
+var gpState = { left: false, right: false, fire: false };
+function pollGamepad() {
+  var pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  for (var p = 0; p < pads.length; p++) {
+    var gp = pads[p];
+    if (!gp) continue;
+
+    // D-pad buttons are usually indices 14 (left) / 15 (right) on standard
+    // mapping; axes[0] covers analog sticks / some D-pads reported as axes.
+    var axisX = gp.axes && gp.axes.length ? gp.axes[0] : 0;
+    var leftNow = (gp.buttons[14] && gp.buttons[14].pressed) || axisX < -0.5;
+    var rightNow = (gp.buttons[15] && gp.buttons[15].pressed) || axisX > 0.5;
+    var fireNow = gp.buttons[0] && gp.buttons[0].pressed; // typical 'A'/main button
+
+    if (rightNow && !gpState.right) {
+      flash('next-btn'); haptic(30);
+      playTrack(idx + 1, 'next');
+    }
+    if (leftNow && !gpState.left) {
+      flash('prev-btn'); haptic(30);
+      if (player.currentTime > 3) { player.currentTime = 0; if (playing) player.play(); }
+      else playTrack(idx - 1, 'prev');
+    }
+    if (fireNow && !gpState.fire) {
+      flash('play-btn'); haptic(40);
+      if (playing) {
+        playing = false; player.pause(); setPlayBtn(false); stopSpin();
+      } else {
+        playTrack(idx, null);
+      }
+    }
+    gpState.left = leftNow;
+    gpState.right = rightNow;
+    gpState.fire = fireNow;
+  }
+  requestAnimationFrame(pollGamepad);
+}
+if (navigator.getGamepads) {
+  window.addEventListener('gamepadconnected', function() {
+    requestAnimationFrame(pollGamepad);
+  });
+  // some browsers/devices don't fire gamepadconnected reliably — poll anyway
+  requestAnimationFrame(pollGamepad);
+}
 
 // ── load tracks ───────────────────────────────────────────────────────────────
 var xhr = new XMLHttpRequest();
