@@ -31,7 +31,7 @@ html, body {
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   padding: 12px 20px 4px;
   background: #2a2520;
 }
@@ -367,15 +367,18 @@ function sizeCard() {
   var stage = document.getElementById('stage');
   var w = stage.clientWidth - 48;
   var h = stage.clientHeight - 16;
-  cardSize = Math.min(w * 0.72, h, 480);
+  cardSize = Math.min(w * 0.68, h * 0.92, 440);
   card.style.width = cardSize + 'px';
   card.style.height = cardSize + 'px';
-  var peekW = Math.round(cardSize * 0.16);
-  var peekH = Math.round(cardSize * 0.62);
+  var peekW = Math.round(cardSize * 0.14);
+  var peekH = Math.round(cardSize * 0.58);
   peekPrev.style.width = peekW + 'px';
   peekPrev.style.height = peekH + 'px';
   peekNext.style.width = peekW + 'px';
   peekNext.style.height = peekH + 'px';
+  // push peeks away from the card so the committed scale(1.08) doesn't overlap them
+  peekPrev.style.marginRight = Math.round(cardSize * 0.06) + 'px';
+  peekNext.style.marginLeft  = Math.round(cardSize * 0.06) + 'px';
 }
 function recordOut() {
   record.style.right = Math.round(cardSize * 0.20) + 'px';
