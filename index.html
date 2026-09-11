@@ -60,6 +60,7 @@ html, body {
   align-self: center;
   position: relative;
   z-index: 1;
+  /* fixed size — set via JS to 400x400 */
 }
 #card.out-left { animation: outLeft 0.26s ease forwards; }
 #card.out-right { animation: outRight 0.26s ease forwards; }
@@ -370,32 +371,31 @@ if (!('ontouchstart' in window)) {
 }
 
 // ── card + record sizing ──────────────────────────────────────────────────────
-var cardSize = 260;
+// Fixed 400x400 for all three covers. Peeks never change size.
+var CARD_SIZE = 400;
+var cardSize = CARD_SIZE;
 function sizeCard() {
-  var stage = document.getElementById('stage');
-  var w = stage.clientWidth - 48;
-  var h = stage.clientHeight - 16;
-  cardSize = Math.min(w * 0.58, h * 0.88, 400);
-  card.style.width = cardSize + 'px';
-  card.style.height = cardSize + 'px';
-
-  // peeks: same height as the card, but narrower (they show the full cover
-  // scaled to fit, so they look like real album spines/edges)
-  var peekW = Math.round(cardSize * 0.32);
-  var peekH = cardSize;
-  peekPrev.style.width = peekW + 'px';
-  peekPrev.style.height = peekH + 'px';
-  peekNext.style.width = peekW + 'px';
-  peekNext.style.height = peekH + 'px';
-  var gap = Math.round(cardSize * 0.06);
+  // Set fixed size on card and peeks.
+  card.style.width = CARD_SIZE + 'px';
+  card.style.height = CARD_SIZE + 'px';
+  peekPrev.style.width = CARD_SIZE + 'px';
+  peekPrev.style.height = CARD_SIZE + 'px';
+  peekNext.style.width = CARD_SIZE + 'px';
+  peekNext.style.height = CARD_SIZE + 'px';
+  // small gap between the three covers
+  var gap = 24;
   peekPrev.style.marginRight = gap + 'px';
   peekNext.style.marginLeft  = gap + 'px';
+  cardSize = CARD_SIZE;
 }
 function recordOut() {
-  record.style.right = Math.round(cardSize * 0.18) + 'px';
+  record.style.right = Math.round(cardSize * 0.20) + 'px';
 }
 function recordIn() {
-  record.style.right = Math.round(cardSize * -0.06) + 'px';
+  // slide out only one third of the way: record width is 80% of card,
+  // so one third of the record is 0.8/3 ≈ 0.2667 of cardSize.
+  // right offset of -0.2667*cardSize means the record is 1/3 out.
+  record.style.right = Math.round(cardSize * -0.2667) + 'px';
 }
 function sizeAndPosition() {
   sizeCard();
