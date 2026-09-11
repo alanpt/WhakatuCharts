@@ -38,9 +38,12 @@ html, body {
 /* ── card ── */
 #card {
   position: relative;
-  /* sized by JS — no fixed px here */
   will-change: transform, opacity;
   flex-shrink: 0;
+  transition: transform 0.4s cubic-bezier(.2,.8,.2,1);
+}
+#card.committed {
+  transform: scale(1.08) var(--tilt, rotate(0deg));
 }
 /* ── peek panels (prev/next album, jukebox-style) ── */
 .peek {
@@ -364,8 +367,6 @@ function sizeCard() {
   var stage = document.getElementById('stage');
   var w = stage.clientWidth - 48;
   var h = stage.clientHeight - 16;
-  // reserve ~28% of the width for the two peek panels either side so the
-  // previous/next covers are visible without shrinking the main card too far
   cardSize = Math.min(w * 0.72, h, 480);
   card.style.width = cardSize + 'px';
   card.style.height = cardSize + 'px';
@@ -392,8 +393,8 @@ setTimeout(function() { recordOut(); }, 0);
 
 // ── record spin ───────────────────────────────────────────────────────────────
 var spinAngle = 0;
-var spinSpeed = 0; // degrees per 16.67ms frame
-var TARGET_SPEED = 0.04; // ~2.5 rpm — very slow, clearly visible
+var spinSpeed = 0;
+var TARGET_SPEED = 0.04;
 var spinRAF = null;
 var lastTS = null;
 function spinLoop(ts) {
@@ -412,9 +413,6 @@ function spinLoop(ts) {
   }
 }
 function startSpin() {
-  // re-enable transition, then wait one tick so showTrack's
-  // transition:none + recordOut() snap has already painted
-  // before we slide the record back in
   record.style.transition = '';
   setTimeout(function() {
     recordIn();
@@ -437,7 +435,7 @@ function stopSpin() {
   })();
 }
 
-// ── marquee (R to L, continuous) ─────────────────────────────────────────────
+// ── marquee ───────────────────────────────────────────────────────────────────
 function updateMarquee() {
   var wrap = document.getElementById('title-wrap');
   var el = titleEl;
@@ -447,10 +445,10 @@ function updateMarquee() {
   requestAnimationFrame(function() {
     var wrapW = wrap.clientWidth;
     var textW = el.scrollWidth;
-    var startX = wrapW; // starts just off right edge
-    var endX = -(textW + 16); // ends just past left edge
+    var startX = wrapW;
+    var endX = -(textW + 16);
     var dist = startX - endX;
-    var dur = Math.max(4, dist / 90); // ~90px per second
+    var dur = Math.max(4, dist / 90);
     el.style.setProperty('--mstart', startX + 'px');
     el.style.setProperty('--mend', endX + 'px');
     el.style.animation = 'marquee ' + dur + 's linear 0.5s infinite';
@@ -485,7 +483,7 @@ function setSleeveImage(src) {
   }
 }
 
-// ── peek panels (prev/next album covers) ───────────────────────────────────────
+// ── peek panels ───────────────────────────────────────────────────────────────
 function updatePeeks() {
   if (!tracks.length) return;
   var prevT = tracks[(idx - 1 + tracks.length) % tracks.length];
@@ -502,14 +500,7 @@ function updatePeeks() {
 }
 
 // ── show track ────────────────────────────────────────────────────────────────
-function applyTilt() {
-  var t = tilts[idx % tilts.length];
-  card.style.setProperty('--tilt', t);
-  card.style.transform = t;
-}
-var navToken = 0; // bumped on every showTrack call; lets a stale in-flight
-                   // transition detect it's been superseded and bail out
-                   // instead of clobbering the newer track's image/card state
+var navToken = 0;
 function showTrack(i, dir, opts) {
   var fast = opts && opts.fast;
   var outMs = fast ? 140 : 260;
@@ -523,30 +514,27 @@ function showTrack(i, dir, opts) {
   updateMarquee();
   updatePeeks();
 
+  // reset card to flat browse state
+  card.classList.remove('committed');
+  card.style.setProperty('--tilt', 'rotate(0deg)');
+
   if (dir) {
-    // 1. slide card out (record snaps to hidden pos instantly, no transition)
     record.style.transition = 'none';
     recordOut();
     card.className = dir === 'next' ? 'out-left' : 'out-right';
 
     setTimeout(function() {
-      if (myToken !== navToken) return; // a newer track was requested meanwhile
+      if (myToken !== navToken) return;
 
-      // 2. re-enable record transition and set tilt while card is off-screen
       record.style.transition = '';
-      applyTilt();
 
-      // 3. preload image then slide card in
       function slideIn() {
-        if (myToken !== navToken) return; // superseded while the image was loading
+        if (myToken !== navToken) return;
         setSleeveImage(t.image || '');
         card.className = dir === 'next' ? 'in-left' : 'in-right';
         setTimeout(function() {
           if (myToken !== navToken) return;
           card.className = '';
-          applyTilt();
-          // if still playing, slide record back out
-          if (playing) recordIn();
         }, inMs);
       }
 
@@ -562,7 +550,6 @@ function showTrack(i, dir, opts) {
   } else {
     card.className = '';
     setSleeveImage(t.image || '');
-    applyTilt();
     record.style.transition = 'none';
     recordOut();
     setTimeout(function() { record.style.transition = ''; }, 50);
@@ -582,18 +569,24 @@ function playTrack(i, dir) {
   showTrack(i, dir);
   startPlaybackCurrent();
 }
-// starts playback of whatever track is currently shown, without re-navigating
-// the card — used both by playTrack() above and by dwell-commit in browse mode,
-// so the vinyl spin-up/slide-in animation is identical either way
 function startPlaybackCurrent() {
   playing = true;
   setPlayBtn(true);
-  startSpin();
-  player.play().catch(function() {
-    playing = false;
-    setPlayBtn(false);
-    stopSpin();
-  });
+
+  // set tilt and add committed class to animate scale + rotate
+  card.style.setProperty('--tilt', tilts[idx % tilts.length]);
+  card.classList.add('committed');
+
+  // after cover transition, slide out record and play
+  setTimeout(function() {
+    startSpin();
+    player.play().catch(function() {
+      playing = false;
+      setPlayBtn(false);
+      stopSpin();
+      card.classList.remove('committed');
+    });
+  }, 400);
 }
 function pausePlayback() {
   if (!playing) return;
@@ -601,12 +594,10 @@ function pausePlayback() {
   player.pause();
   setPlayBtn(false);
   stopSpin();
+  card.classList.remove('committed');
 }
 
-// ── browse mode (keyboard + joystick) ───────────────────────────────────────────
-// Moving left/right browses covers without playing anything. If input stops for
-// DWELL_MS, whatever's showing starts playing automatically — like flicking
-// through a jukebox rack and letting go on the one you want.
+// ── browse mode ───────────────────────────────────────────────────────────────
 var DWELL_MS = 3000;
 var FLICK_MS = 260;
 var dwellId = null;
@@ -628,8 +619,6 @@ function move(dir) {
   showTrack(newIdx, dir === 1 ? 'next' : 'prev', { fast: true });
   armDwell();
 }
-// unifies keyboard and joystick into one "direction held" state so both
-// browse at the same cadence and can't double-fire against each other
 var heldDir = 0;
 var repeatId = null;
 function setHeldDir(dir) {
@@ -725,7 +714,7 @@ document.addEventListener('touchend', function(e) {
   }
 }, { passive: true });
 
-// ── force focus so keydown works inside kiosk/iframe wrappers (e.g. FullPageOS) ─
+// ── focus ─────────────────────────────────────────────────────────────────────
 document.body.tabIndex = -1;
 window.addEventListener('load', function() {
   window.focus();
@@ -733,11 +722,7 @@ window.addEventListener('load', function() {
 });
 document.addEventListener('click', function() { window.focus(); });
 
-// ── keyboard / joystick (arrow-key emulating) ──────────────────────────────────
-// Arrow keys browse covers (see move()/setHeldDir() above) and auto-play after
-// a 3s dwell; space/enter commits or pauses immediately. We drive our own
-// repeat interval via keydown/keyup rather than relying on the OS's native key
-// repeat, so the flick cadence matches the joystick exactly.
+// ── keyboard / joystick ───────────────────────────────────────────────────────
 document.addEventListener('keydown', function(e) {
   var tag = (document.activeElement && document.activeElement.tagName) || '';
   if (tag === 'INPUT' || tag === 'TEXTAREA') return;
@@ -764,16 +749,9 @@ document.addEventListener('keyup', function(e) {
   else if (e.key === 'ArrowLeft' && heldDir === -1) setHeldDir(0);
 });
 
-// ── gamepad / raw joystick polling (for sticks that DON'T emulate a keyboard) ──
-// Many cheap USB joysticks register as a raw HID gamepad rather than sending
-// key events. The browser only exposes those through the Gamepad API, which
-// must be polled every frame (there's no 'joystick pressed' event).
+// ── gamepad ───────────────────────────────────────────────────────────────────
 var gpFire = false;
 var gpPolling = false;
-// hysteresis on the analog axis: a noisy/imprecise stick sitting close to a
-// single threshold can flicker across it several times per second, which
-// previously fired several 'next'/'prev' navigations in a row. Using two
-// different on/off thresholds means it has to travel further to un-register.
 var AXIS_ON = 0.6, AXIS_OFF = 0.3;
 var gpAxisLeft = false, gpAxisRight = false;
 function pollGamepad() {
@@ -781,18 +759,13 @@ function pollGamepad() {
   for (var p = 0; p < pads.length; p++) {
     var gp = pads[p];
     if (!gp) continue;
-
-    // D-pad buttons are usually indices 14 (left) / 15 (right) on standard
-    // mapping; axes[0] covers analog sticks / some D-pads reported as axes.
     var axisX = gp.axes && gp.axes.length ? gp.axes[0] : 0;
     if (axisX < -AXIS_ON) gpAxisLeft = true; else if (axisX > -AXIS_OFF) gpAxisLeft = false;
     if (axisX > AXIS_ON) gpAxisRight = true; else if (axisX < AXIS_OFF) gpAxisRight = false;
     var leftNow = (gp.buttons[14] && gp.buttons[14].pressed) || gpAxisLeft;
     var rightNow = (gp.buttons[15] && gp.buttons[15].pressed) || gpAxisRight;
-    var fireNow = gp.buttons[0] && gp.buttons[0].pressed; // typical 'A'/main button
+    var fireNow = gp.buttons[0] && gp.buttons[0].pressed;
 
-    // same setHeldDir() model as the keyboard, so holding the stick flicks
-    // through covers at the exact same cadence as holding an arrow key
     if (rightNow) setHeldDir(1);
     else if (leftNow) setHeldDir(-1);
     else if (heldDir !== 0) setHeldDir(0);
@@ -803,13 +776,12 @@ function pollGamepad() {
   requestAnimationFrame(pollGamepad);
 }
 function startGamepadPolling() {
-  if (gpPolling) return; // guard: gamepadconnected + the fallback below could
-  gpPolling = true;      // otherwise both start their own RAF chain
+  if (gpPolling) return;
+  gpPolling = true;
   requestAnimationFrame(pollGamepad);
 }
 if (navigator.getGamepads) {
   window.addEventListener('gamepadconnected', startGamepadPolling);
-  // some browsers/devices don't fire gamepadconnected reliably — poll anyway
   startGamepadPolling();
 }
 
