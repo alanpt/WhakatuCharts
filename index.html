@@ -44,7 +44,8 @@ html, body {
   transition: transform 0.45s cubic-bezier(.2,.8,.2,1);
 }
 #card.committed {
-  transform: scale(1.15) var(--tilt, rotate(0deg));
+  /* sleeve + record grow 120% together, with a slight tilt */
+  transform: scale(1.2) var(--tilt, rotate(0deg));
   z-index: 20;
 }
 /* ── peek panels (prev/next album) ── */
@@ -60,18 +61,18 @@ html, body {
   align-self: center;
   position: relative;
   z-index: 1;
-  /* fixed size — set via JS to 400x400 */
 }
-#card.out-left { animation: outLeft 0.26s ease forwards; }
+/* pure horizontal slide — no rotation, no overshoot */
+#card.out-left  { animation: outLeft  0.26s ease forwards; }
 #card.out-right { animation: outRight 0.26s ease forwards; }
-#card.in-left { animation: inLeft 0.26s ease forwards; }
-#card.in-right { animation: inRight 0.26s ease forwards; }
-@keyframes outLeft { to { transform: translateX(-140%) rotate(-6deg); opacity: 0; } }
-@keyframes outRight { to { transform: translateX( 140%) rotate( 6deg); opacity: 0; } }
-@keyframes inLeft { from { transform: translateX( 140%) rotate( 6deg); opacity: 0; }
-  to { transform: var(--tilt, none); opacity: 1; } }
-@keyframes inRight { from { transform: translateX(-140%) rotate(-6deg); opacity: 0; }
-  to { transform: var(--tilt, none); opacity: 1; } }
+#card.in-left   { animation: inLeft   0.26s ease forwards; }
+#card.in-right  { animation: inRight  0.26s ease forwards; }
+@keyframes outLeft  { to { transform: translateX(-140%); opacity: 0; } }
+@keyframes outRight { to { transform: translateX( 140%); opacity: 0; } }
+@keyframes inLeft   { from { transform: translateX( 140%); opacity: 0; }
+                      to   { transform: translateX(0);     opacity: 1; } }
+@keyframes inRight  { from { transform: translateX(-140%); opacity: 0; }
+                      to   { transform: translateX(0);     opacity: 1; } }
 
 /* ── vinyl record ── */
 #record {
@@ -370,19 +371,16 @@ if (!('ontouchstart' in window)) {
   logoLink.removeAttribute('href');
 }
 
-// ── card + record sizing ──────────────────────────────────────────────────────
-// Fixed 400x400 for all three covers. Peeks never change size.
+// ── fixed 400×400 covers ──────────────────────────────────────────────────────
 var CARD_SIZE = 400;
 var cardSize = CARD_SIZE;
 function sizeCard() {
-  // Set fixed size on card and peeks.
   card.style.width = CARD_SIZE + 'px';
   card.style.height = CARD_SIZE + 'px';
   peekPrev.style.width = CARD_SIZE + 'px';
   peekPrev.style.height = CARD_SIZE + 'px';
   peekNext.style.width = CARD_SIZE + 'px';
   peekNext.style.height = CARD_SIZE + 'px';
-  // small gap between the three covers
   var gap = 24;
   peekPrev.style.marginRight = gap + 'px';
   peekNext.style.marginLeft  = gap + 'px';
@@ -392,9 +390,7 @@ function recordOut() {
   record.style.right = Math.round(cardSize * 0.20) + 'px';
 }
 function recordIn() {
-  // slide out only one third of the way: record width is 80% of card,
-  // so one third of the record is 0.8/3 ≈ 0.2667 of cardSize.
-  // right offset of -0.2667*cardSize means the record is 1/3 out.
+  // one third of the record's own width out of the sleeve
   record.style.right = Math.round(cardSize * -0.2667) + 'px';
 }
 function sizeAndPosition() {
@@ -591,7 +587,7 @@ function startPlaybackCurrent() {
   playing = true;
   setPlayBtn(true);
 
-  // set tilt and add committed class to animate scale + rotate
+  // sleeve + record grow 120% together with a slight tilt
   card.style.setProperty('--tilt', tilts[idx % tilts.length]);
   card.classList.add('committed');
 
