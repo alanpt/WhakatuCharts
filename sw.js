@@ -1,4 +1,4 @@
-const CACHE = 'whakatu-v5';
+const CACHE = 'whakatu-v7'; // bumped again for the jukebox browse/dwell update
 const STATIC = ['./', 'index.html', 'manifest.json', 'logo.png', 'tracks.json'];
 
 self.addEventListener('install', e => {
