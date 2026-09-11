@@ -52,10 +52,11 @@ html, body {
   flex-shrink: 0;
   border-radius: 8px;
   overflow: hidden;
-  background-size: cover;
+  background-size: contain;
+  background-repeat: no-repeat;
   background-position: center;
   background-color: #1a1a1a;
-  opacity: 0.42;
+  opacity: 0.55;
   align-self: center;
   position: relative;
   z-index: 1;
@@ -148,7 +149,7 @@ html, body {
 #sleeve {
   position: absolute;
   top: 0; left: 0;
-  width: 84%; height: 84%;
+  width: 100%; height: 100%;
   border-radius: 4px;
   overflow: hidden;
   z-index: 2;
@@ -377,13 +378,16 @@ function sizeCard() {
   cardSize = Math.min(w * 0.58, h * 0.88, 400);
   card.style.width = cardSize + 'px';
   card.style.height = cardSize + 'px';
-  var peekW = Math.round(cardSize * 0.18);
-  var peekH = Math.round(cardSize * 0.66);
+
+  // peeks: same height as the card, but narrower (they show the full cover
+  // scaled to fit, so they look like real album spines/edges)
+  var peekW = Math.round(cardSize * 0.32);
+  var peekH = cardSize;
   peekPrev.style.width = peekW + 'px';
   peekPrev.style.height = peekH + 'px';
   peekNext.style.width = peekW + 'px';
   peekNext.style.height = peekH + 'px';
-  var gap = Math.round(cardSize * 0.10);
+  var gap = Math.round(cardSize * 0.06);
   peekPrev.style.marginRight = gap + 'px';
   peekNext.style.marginLeft  = gap + 'px';
 }
@@ -505,7 +509,7 @@ function updatePeeks() {
     el.style.opacity = '0.18';
     void el.offsetWidth;
     el.style.transition = 'opacity 0.18s ease';
-    el.style.opacity = '0.42';
+    el.style.opacity = '0.55';
   });
 }
 
@@ -529,7 +533,6 @@ function showTrack(i, dir, opts) {
   card.classList.remove('committed');
   card.style.setProperty('--tilt', 'rotate(0deg)');
   card.style.transform = 'rotate(0deg)';
-  // force reflow so the instant reset paints before animations run
   void card.offsetWidth;
   card.style.transition = '';
 
@@ -635,7 +638,7 @@ function clearDwell() {
 function move(dir) {
   flash(dir === 1 ? 'next-btn' : 'prev-btn');
   haptic(20);
-  pausePlayback(); // this now snaps the card back to flat instantly
+  pausePlayback();
   var newIdx = ((idx + dir) % tracks.length + tracks.length) % tracks.length;
   showTrack(newIdx, dir === 1 ? 'next' : 'prev', { fast: true });
   armDwell();
